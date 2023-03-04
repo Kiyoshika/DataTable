@@ -3,3 +3,15 @@ target_include_directories(dt_column_create PUBLIC ${DataTable_SOURCE_DIR}/inclu
 target_link_libraries(dt_column_create dt_column)
 
 add_test(NAME dt_column_create COMMAND dt_column_create)
+
+add_executable(dt_column_set_and_get_value dt_column_set_and_get_value.c)
+target_include_directories(dt_column_set_and_get_value PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_set_and_get_value dt_column)
+
+add_test(NAME dt_column_set_and_get_value COMMAND dt_column_set_and_get_value)
+
+add_executable(dt_column_append_value dt_column_append_value.c)
+target_include_directories(dt_column_append_value PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_append_value dt_column)
+
+add_test(NAME dt_column_append_value COMMAND dt_column_append_value)
