@@ -24,21 +24,28 @@ int main()
 		return -1;
 	}
 
-	if (column->value_capacity != 5)
+	// the internal capacity is actually doubled but the "logical" size is still 5
+	if (column->value_capacity != 10)
 	{
-		fprintf(stderr, "Expecting capacity of 5 but got %zu.\n", column->value_capacity);
+		fprintf(stderr, "Expecting capacity of 10 but got %zu.\n", column->value_capacity);
 		goto cleanup;
 	}
 
-	if (column->n_values != 0)
+	if (column->n_values != 5)
 	{
-		fprintf(stderr, "Expecting n_values to be 0 but got %zu.\n", column->n_values);
+		fprintf(stderr, "Expecting n_values to be 5 but got %zu.\n", column->n_values);
 		goto cleanup;
 	}
 
 	if (column->type != FLOAT)
 	{
 		fprintf(stderr, "Expecting FLOAT type but got %s.\n", dt_type_to_str(column->type));
+		goto cleanup;
+	}
+
+	if (column->type_size != sizeof(float))
+	{
+		fprintf(stderr, "Expecting type_size of %zu but got %zu.\n", sizeof(float), column->type_size);
 		goto cleanup;
 	}
 

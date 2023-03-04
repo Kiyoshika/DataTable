@@ -23,12 +23,14 @@ char* dt_type_to_str(
 struct DataColumn
 {
 	enum data_type_e type;
+	size_t type_size;
 	void* value;
 	size_t n_values;
 	size_t value_capacity;
 };
 
 // pass a NULL-initialized DataTable to allocate [capacity] number of items.
+// this will create n_values = capacity all equal to zero.
 // size of each item is determined by the passed type.
 // returns DT_ALLOC_ERROR if couldn't properly allocate memory, DT_SUCCESS otherwise.
 enum status_code_e
