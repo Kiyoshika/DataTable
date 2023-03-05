@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "StatusCodes.h"
 
@@ -101,5 +102,16 @@ dt_column_iterate_rows(
 struct DataColumn*
 dt_column_copy(
 	const struct DataColumn* const column);
+
+// iterate each row of column and apply a user callback (with optional user data) and return an array of size_t indices. The size of the returned array is stored in n_items_returned (so just pass a size_t by address).
+// if filter returns nothing, NULL is returned and n_items_returned is set to 0.
+// if an allocation error occurrs, NULL is returned and n_items_returned is set to -1
+size_t*
+dt_column_filter(
+	const struct DataColumn* const column,
+	void* user_data,
+	bool (*filter_callback)(void* item, void* user_data),
+	ssize_t* n_items_returned);
+
 
 #endif
