@@ -176,3 +176,21 @@ dt_column_iterate_rows(
 	for (size_t i = 0; i < column->n_values; ++i)
 		user_callback(get_index_ptr(column, i), user_data);
 }
+
+struct DataColumn*
+dt_column_copy(
+	const struct DataColumn* const column)
+{
+	struct DataColumn* copy_column = NULL;
+	if (!dt_column_create(&copy_column, column->n_values, column->type))
+		return NULL;
+
+	for (size_t i = 0; i < column->n_values; ++i)
+	{
+		void* source = get_index_ptr(column, i);
+		void* dest = get_index_ptr(copy_column, i);
+		memcpy(dest, source, column->type_size);
+	}
+
+	return copy_column;
+}
