@@ -129,3 +129,12 @@ dt_column_get_value(
 
 	return DT_SUCCESS;
 }
+
+void
+dt_column_fill_values(
+	struct DataColumn* const column,
+	const void* const value)
+{
+	for (size_t i = 0; i < column->n_values; ++i)
+		dt_column_set_value(column, i, value);
+}
