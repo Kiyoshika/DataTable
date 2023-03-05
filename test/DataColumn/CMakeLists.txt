@@ -21,3 +21,9 @@ target_include_directories(dt_column_fill_values PUBLIC ${DataTable_SOURCE_DIR}/
 target_link_libraries(dt_column_fill_values dt_column)
 
 add_test(NAME dt_column_fill_values COMMAND dt_column_fill_values)
+
+add_executable(dt_column_iterate_rows dt_column_iterate_rows.c)
+target_include_directories(dt_column_iterate_rows PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_iterate_rows dt_column)
+
+add_test(NAME dt_column_iterate_rows COMMAND dt_column_iterate_rows)

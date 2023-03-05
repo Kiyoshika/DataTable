@@ -83,4 +83,11 @@ void
 dt_column_free(
 	struct DataColumn** column);
 
+// apply user callback function on each row within a column (optionally passing custom user data)
+void
+dt_column_iterate_rows(
+	struct DataColumn* const column,
+	void* user_data,
+	void (*user_callback)(void* item, void* user_data));
+
 #endif
