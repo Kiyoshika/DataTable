@@ -27,3 +27,9 @@ target_include_directories(dt_column_iterate_rows PUBLIC ${DataTable_SOURCE_DIR}
 target_link_libraries(dt_column_iterate_rows dt_column)
 
 add_test(NAME dt_column_iterate_rows COMMAND dt_column_iterate_rows)
+
+add_executable(dt_column_copy dt_column_copy.c)
+target_include_directories(dt_column_copy PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_copy dt_column)
+
+add_test(NAME dt_column_copy COMMAND dt_column_copy)
