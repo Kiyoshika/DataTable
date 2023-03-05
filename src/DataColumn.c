@@ -138,3 +138,13 @@ dt_column_fill_values(
 	for (size_t i = 0; i < column->n_values; ++i)
 		dt_column_set_value(column, i, value);
 }
+
+void
+dt_column_iterate_rows(
+	struct DataColumn* const column,
+	void* user_data,
+	void (*user_callback)(void* item, void* user_data))
+{
+	for (size_t i = 0; i < column->n_values; ++i)
+		user_callback(get_index_ptr(column, i), user_data);
+}
