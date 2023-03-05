@@ -228,3 +228,32 @@ alloc_fail:
 	return NULL;
 	
 }
+
+struct DataColumn*
+dt_column_subset(
+	const struct DataColumn* const column,
+	const size_t* const indices,
+	const size_t n_indices)
+{
+	if (n_indices == 0)
+		return NULL;
+
+	struct DataColumn* subset = NULL;
+	dt_column_create(&subset, n_indices, column->type);
+
+	for (size_t i = 0; i < n_indices; ++i)
+	{
+		if (indices[i] >= column->n_values)
+			goto bad_index;
+
+		void* source = get_index_ptr(column, indices[i]);
+		void* dest = get_index_ptr(subset, i);
+		memcpy(dest, source, column->type_size);
+	}
+
+	return subset;
+
+bad_index:
+	dt_column_free(&subset);
+	return NULL;
+}

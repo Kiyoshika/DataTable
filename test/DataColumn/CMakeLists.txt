@@ -39,3 +39,9 @@ target_include_directories(dt_column_filter PUBLIC ${DataTable_SOURCE_DIR}/inclu
 target_link_libraries(dt_column_filter dt_column)
 
 add_test(NAME dt_column_filter COMMAND dt_column_filter)
+
+add_executable(dt_column_subset dt_column_subset.c)
+target_include_directories(dt_column_subset PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_subset dt_column)
+
+add_test(NAME dt_column_subset COMMAND dt_column_subset)

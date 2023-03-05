@@ -113,5 +113,12 @@ dt_column_filter(
 	bool (*filter_callback)(void* item, void* user_data),
 	ssize_t* n_items_returned);
 
+// subset a column by specific indices which returns a newly-allocated column or returns NULL on failure (e.g., if one of the indices is out of bounds).
+struct DataColumn*
+dt_column_subset(
+	const struct DataColumn* const column,
+	const size_t* const indices,
+	const size_t n_indices);
+
 
 #endif
