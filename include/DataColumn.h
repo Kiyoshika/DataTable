@@ -64,6 +64,12 @@ dt_column_get_value(
 	const size_t index,
 	void* const value);
 
+// fill all values of a column with a specified value
+void
+dt_column_fill_values(
+	struct DataColumn* const column,
+	const void* const value);
+
 // sum the items in a column and write the result into result pointer.
 // the items will automatically be cast according to the type (float, integer, etc) so be sure your result pointer is typed appropriately.
 // returns nothing.

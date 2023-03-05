@@ -15,3 +15,9 @@ target_include_directories(dt_column_append_value PUBLIC ${DataTable_SOURCE_DIR}
 target_link_libraries(dt_column_append_value dt_column)
 
 add_test(NAME dt_column_append_value COMMAND dt_column_append_value)
+
+add_executable(dt_column_fill_values dt_column_fill_values.c)
+target_include_directories(dt_column_fill_values PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_fill_values dt_column)
+
+add_test(NAME dt_column_fill_values COMMAND dt_column_fill_values)
