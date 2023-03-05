@@ -49,7 +49,7 @@ dt_column_create(
 	if (!*column)
 		return DT_ALLOC_ERROR;
 
-	(*column)->value = calloc(capacity * 2, get_type_size(type));
+	(*column)->value = calloc(capacity * 2 + 1, get_type_size(type));
 	if (!(*column)->value)
 	{
 		free(*column);
@@ -59,7 +59,7 @@ dt_column_create(
 	(*column)->type = type;
 	(*column)->type_size = get_type_size(type);
 	(*column)->n_values = capacity;
-	(*column)->value_capacity = capacity * 2;
+	(*column)->value_capacity = capacity * 2 + 1;
 
 	return DT_SUCCESS;
 }

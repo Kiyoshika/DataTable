@@ -24,8 +24,8 @@ int main()
 		return -1;
 	}
 
-	// the internal capacity is actually doubled but the "logical" size is still 5
-	if (column->value_capacity != 10)
+	// the internal capacity is actually doubled (and incremented by 1) but the "logical" size is still 5
+	if (column->value_capacity != 11)
 	{
 		fprintf(stderr, "Expecting capacity of 10 but got %zu.\n", column->value_capacity);
 		goto cleanup;

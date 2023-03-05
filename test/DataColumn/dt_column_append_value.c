@@ -17,12 +17,25 @@ int main()
 
 	if (get != set)
 	{
-		fprintf(stderr, "Was expected value %d but got %d instead.\n", set, get);
+		fprintf(stderr, "Was expecting value %d but got %d instead.\n", set, get);
+		goto cleanup;
+	}
+
+	// test appending with empty column
+	struct DataColumn* empty = NULL;
+	dt_column_create(&empty, 0, INT32);
+	dt_column_append_value(empty, &set);
+	dt_column_get_value(empty, 0, &get);
+
+	if (get != set)
+	{
+		fprintf(stderr, "Was expecting value %d but got %d instead.\n", set, get);
 		goto cleanup;
 	}
 
 	status = 0;
 cleanup:
 	dt_column_free(&column);
+	dt_column_free(&empty);
 	return status;
 }
