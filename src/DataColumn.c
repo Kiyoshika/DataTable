@@ -9,8 +9,22 @@ char* dt_type_to_str(
 			return "FLOAT";
 		case DOUBLE:
 			return "DOUBLE";
+		case INT8:
+			return "INT8";
+		case INT16:
+			return "INT16";
 		case INT32:
 			return "INT32";
+		case INT64:
+			return "INT64";
+		case UINT8:
+			return "UINT8";
+		case UINT16:
+			return "UINT16";
+		case UINT32:
+			return "UINT32";
+		case UINT64:
+			return "UINT64";
 	}
 
 	return "UNKNOWN";
@@ -25,8 +39,22 @@ static size_t get_type_size(
 			return sizeof(float);
 		case DOUBLE:
 			return sizeof(double);
+		case INT8:
+			return sizeof(int8_t);
+		case INT16:
+			return sizeof(int16_t);
 		case INT32:
 			return sizeof(int32_t);
+		case INT64:
+			return sizeof(int64_t);
+		case UINT8:
+			return sizeof(uint8_t);
+		case UINT16:
+			return sizeof(uint16_t);
+		case UINT32:
+			return sizeof(uint32_t);
+		case UINT64:
+			return sizeof(uint64_t);
 	}
 
 	return 0;
