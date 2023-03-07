@@ -120,5 +120,21 @@ dt_column_subset(
 	const size_t* const indices,
 	const size_t n_indices);
 
+// resize a column to new size with n_values.
+// returns DT_ALLOC_ERROR if reallocation fails, DT_SUCCESS otherwise.
+// if new size is bigger, values are defaulted to 0.
+enum status_code_e
+dt_column_resize(
+	struct DataColumn* const column,
+	const size_t n_values);
+
+// union [src] column into [dest] column (will be resized).
+// returns DT_ALLOC_ERROR if unable to reallocate memory,
+// DT_TYPE_MISMATCH if types don't match,
+// DT_SUCCESS otherwise
+enum status_code_e
+dt_column_union(
+	struct DataColumn* const dest,
+	const struct DataColumn* const src);
 
 #endif

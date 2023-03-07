@@ -77,6 +77,7 @@ dt_column_create(
 	if (!*column)
 		return DT_ALLOC_ERROR;
 
+	// NOTE: *2 + 1 to handle the case of 0 (empty column, we still want the ability to append)
 	(*column)->value = calloc(capacity * 2 + 1, get_type_size(type));
 	if (!(*column)->value)
 	{
@@ -256,4 +257,50 @@ dt_column_subset(
 bad_index:
 	dt_column_free(&subset);
 	return NULL;
+}
+
+enum status_code_e
+dt_column_resize(
+	struct DataColumn* const column,
+	const size_t n_values)
+{
+	if (n_values > column->value_capacity)
+	{
+		void* alloc = realloc(column->value, n_values * column->type_size);
+		if (!alloc)
+			return DT_ALLOC_ERROR;
+		column->value_capacity = n_values;
+		column->value = alloc;
+
+		for (size_t i = column->n_values; i < n_values; ++i)
+			memset(get_index_ptr(column, i), 0, column->type_size);
+	}
+
+	column->n_values = n_values;
+
+	return DT_SUCCESS;
+}
+
+enum status_code_e
+dt_column_union(
+	struct DataColumn* const dest,
+	const struct DataColumn* const src)
+{
+	if (dest->type != src->type)
+		return DT_TYPE_MISMATCH;
+
+	size_t initial_size = dest->n_values;
+
+	if (!dt_column_resize(dest, dest->n_values + src->n_values))
+		return DT_ALLOC_ERROR;
+
+	size_t src_idx = 0;
+	for (; initial_size < dest->n_values; ++initial_size)
+	{
+		void* get = get_index_ptr(src, src_idx++);
+		void* set = get_index_ptr(dest, initial_size);
+		memcpy(set, get, src->type_size);
+	}
+
+	return DT_SUCCESS;
 }
