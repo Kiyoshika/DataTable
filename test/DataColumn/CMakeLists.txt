@@ -45,3 +45,15 @@ target_include_directories(dt_column_subset PUBLIC ${DataTable_SOURCE_DIR}/inclu
 target_link_libraries(dt_column_subset dt_column)
 
 add_test(NAME dt_column_subset COMMAND dt_column_subset)
+
+add_executable(dt_column_resize dt_column_resize.c)
+target_include_directories(dt_column_resize PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_resize dt_column)
+
+add_test(NAME dt_column_resize COMMAND dt_column_resize)
+
+add_executable(dt_column_union dt_column_union.c)
+target_include_directories(dt_column_union PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_union dt_column)
+
+add_test(NAME dt_column_union COMMAND dt_column_union)
