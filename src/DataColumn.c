@@ -366,3 +366,129 @@ dt_column_sum(
 			break;
 	}
 }
+
+void
+dt_column_max(
+	const struct DataColumn* const column,
+	void* result)
+{
+	// start maximum at first item
+	memcpy(result, get_index_ptr(column, 0), column->type_size);
+
+	switch (column->type)
+	{
+		case UINT8:
+			_agg_loop(column, result, uint8_t, _max_item);
+			break;
+		case UINT16:
+			_agg_loop(column, result, uint16_t, _max_item);
+			break;
+		case UINT32:
+			_agg_loop(column, result, uint32_t, _max_item);
+			break;
+		case UINT64:
+			_agg_loop(column, result, uint64_t, _max_item);
+			break;
+		case INT8:
+			_agg_loop(column, result, int8_t, _max_item);
+			break;
+		case INT16:
+			_agg_loop(column, result, int16_t, _max_item);
+			break;
+		case INT32:
+			_agg_loop(column, result, int32_t, _max_item);
+			break;
+		case INT64:
+			_agg_loop(column, result, int64_t, _max_item);
+			break;
+		case FLOAT:
+			_agg_loop(column, result, float, _max_item);
+			break;
+		case DOUBLE:
+			_agg_loop(column, result, double, _max_item);
+			break;
+	}
+}
+
+void
+dt_column_min(
+	const struct DataColumn* const column,
+	void* result)
+{
+	// start minimum at first item
+	memcpy(result, get_index_ptr(column, 0), column->type_size);
+
+	switch (column->type)
+	{
+		case UINT8:
+			_agg_loop(column, result, uint8_t, _min_item);
+			break;
+		case UINT16:
+			_agg_loop(column, result, uint16_t, _min_item);
+			break;
+		case UINT32:
+			_agg_loop(column, result, uint32_t, _min_item);
+			break;
+		case UINT64:
+			_agg_loop(column, result, uint64_t, _min_item);
+			break;
+		case INT8:
+			_agg_loop(column, result, int8_t, _min_item);
+			break;
+		case INT16:
+			_agg_loop(column, result, int16_t, _min_item);
+			break;
+		case INT32:
+			_agg_loop(column, result, int32_t, _min_item);
+			break;
+		case INT64:
+			_agg_loop(column, result, int64_t, _min_item);
+			break;
+		case FLOAT:
+			_agg_loop(column, result, float, _min_item);
+			break;
+		case DOUBLE:
+			_agg_loop(column, result, double, _min_item);
+			break;
+	}
+}
+
+void
+dt_column_avg(
+	const struct DataColumn* const column,
+	void* result)
+{
+	switch (column->type)
+	{
+		case UINT8:
+			_agg_loop_divide_size(column, result, uint8_t, _sum_item);
+			break;
+		case UINT16:
+			_agg_loop_divide_size(column, result, uint16_t, _sum_item);
+			break;
+		case UINT32:
+			_agg_loop_divide_size(column, result, uint32_t, _sum_item);
+			break;
+		case UINT64:
+			_agg_loop_divide_size(column, result, uint64_t, _sum_item);
+			break;
+		case INT8:
+			_agg_loop_divide_size(column, result, int8_t, _sum_item);
+			break;
+		case INT16:
+			_agg_loop_divide_size(column, result, int16_t, _sum_item);
+			break;
+		case INT32:
+			_agg_loop_divide_size(column, result, int32_t, _sum_item);
+			break;
+		case INT64:
+			_agg_loop_divide_size(column, result, int64_t, _sum_item);
+			break;
+		case FLOAT:
+			_agg_loop_divide_size(column, result, float, _sum_item);
+			break;
+		case DOUBLE:
+			_agg_loop_divide_size(column, result, double, _sum_item);
+			break;
+	}
+}

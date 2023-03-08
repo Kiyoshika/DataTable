@@ -166,12 +166,24 @@ dt_column_union_multiple(
 	if (*_item < *_data) \
 		*_data = *_item;
 
-// a macro for iterating over a column column an arbitrary aggregation macro
+// a macro for iterating over a column and calling an arbitrary aggregation macro
 #define _agg_loop(column, user_data, type, agg_func) \
 	for (size_t i = 0; i < column->n_values; ++i) \
     { \
 		agg_func(get_index_ptr(column, i), user_data, type); \
 	} \
+
+// a macro for iterating over a column and calling an arbitrary aggregation macro
+// then dividing by its size
+#define _agg_loop_divide_size(column, user_data, type, agg_func) \
+	for (size_t i = 0; i < column->n_values; ++i) \
+    { \
+		agg_func(get_index_ptr(column, i), user_data, type); \
+	} \
+    { \
+		type* _data = user_data; \
+		*_data /= column->n_values; \
+	}
 
 // sum all the values in a column and store result into [result].
 // the type is determined by column->type.
@@ -180,4 +192,24 @@ dt_column_sum(
 	const struct DataColumn* const column,
 	void* result);
 
+// get the maximum value in a column and store the result into [result].
+// the type is determined by column->type.
+void
+dt_column_max(
+	const struct DataColumn* const column,
+	void* result);
+
+// get the minimum value in a column and store the result into [result].
+// the type is determined by column->type.
+void
+dt_column_min(
+	const struct DataColumn* const column,
+	void* result);
+
+// get the average value in a column and store the result into [result].
+// the type is determined by column->type.
+void
+dt_column_avg(
+	const struct DataColumn* const column,
+	void* result);
 #endif
