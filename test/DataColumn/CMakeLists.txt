@@ -1,59 +1,54 @@
 add_executable(dt_column_create dt_column_create.c)
 target_include_directories(dt_column_create PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_create dt_column)
-
 add_test(NAME dt_column_create COMMAND dt_column_create)
 
 add_executable(dt_column_set_and_get_value dt_column_set_and_get_value.c)
 target_include_directories(dt_column_set_and_get_value PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_set_and_get_value dt_column)
-
 add_test(NAME dt_column_set_and_get_value COMMAND dt_column_set_and_get_value)
 
 add_executable(dt_column_append_value dt_column_append_value.c)
 target_include_directories(dt_column_append_value PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_append_value dt_column)
-
 add_test(NAME dt_column_append_value COMMAND dt_column_append_value)
 
 add_executable(dt_column_fill_values dt_column_fill_values.c)
 target_include_directories(dt_column_fill_values PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_fill_values dt_column)
-
 add_test(NAME dt_column_fill_values COMMAND dt_column_fill_values)
 
 add_executable(dt_column_iterate_rows dt_column_iterate_rows.c)
 target_include_directories(dt_column_iterate_rows PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_iterate_rows dt_column)
-
 add_test(NAME dt_column_iterate_rows COMMAND dt_column_iterate_rows)
 
 add_executable(dt_column_copy dt_column_copy.c)
 target_include_directories(dt_column_copy PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_copy dt_column)
-
 add_test(NAME dt_column_copy COMMAND dt_column_copy)
 
 add_executable(dt_column_filter dt_column_filter.c)
 target_include_directories(dt_column_filter PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_filter dt_column)
-
 add_test(NAME dt_column_filter COMMAND dt_column_filter)
 
 add_executable(dt_column_subset dt_column_subset.c)
 target_include_directories(dt_column_subset PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_subset dt_column)
-
 add_test(NAME dt_column_subset COMMAND dt_column_subset)
 
 add_executable(dt_column_resize dt_column_resize.c)
 target_include_directories(dt_column_resize PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_resize dt_column)
-
 add_test(NAME dt_column_resize COMMAND dt_column_resize)
 
 add_executable(dt_column_union dt_column_union.c)
 target_include_directories(dt_column_union PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_union dt_column)
-
 add_test(NAME dt_column_union COMMAND dt_column_union)
+
+add_executable(dt_column_union_multiple dt_column_union_multiple.c)
+target_include_directories(dt_column_union_multiple PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_union_multiple dt_column)
+add_test(NAME dt_column_union_multiple COMMAND dt_column_union_multiple)

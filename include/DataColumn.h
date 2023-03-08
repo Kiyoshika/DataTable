@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "StatusCodes.h"
 
@@ -130,11 +131,21 @@ dt_column_resize(
 
 // union [src] column into [dest] column (will be resized).
 // returns DT_ALLOC_ERROR if unable to reallocate memory,
-// DT_TYPE_MISMATCH if types don't match,
-// DT_SUCCESS otherwise
+// returns DT_TYPE_MISMATCH if types don't match
+// returns DT_SUCCESS otherwise
 enum status_code_e
 dt_column_union(
 	struct DataColumn* const dest,
 	const struct DataColumn* const src);
+
+// union multiple columns [src] into [dest] column (will be resized).
+// returns DT_ALLOC_ERROR if unable to reallocate memory.
+// returns DT_TYPE_MISMATCH if types don't match
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_column_union_multiple(
+	struct DataColumn* const dest,
+	const size_t n_columns,
+	...);
 
 #endif
