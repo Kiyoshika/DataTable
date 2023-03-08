@@ -326,3 +326,43 @@ cleanup:
 	va_end(src_columns);
 	return status;
 }
+
+void
+dt_column_sum(
+	const struct DataColumn* const column,
+	void* result)
+{
+	switch (column->type)
+	{
+		case UINT8:
+			_agg_loop(column, result, uint8_t, _sum_item);
+			break;
+		case UINT16:
+			_agg_loop(column, result, uint16_t, _sum_item);
+			break;
+		case UINT32:
+			_agg_loop(column, result, uint32_t, _sum_item);
+			break;
+		case UINT64:
+			_agg_loop(column, result, uint64_t, _sum_item);
+			break;
+		case INT8:
+			_agg_loop(column, result, int8_t, _sum_item);
+			break;
+		case INT16:
+			_agg_loop(column, result, int16_t, _sum_item);
+			break;
+		case INT32:
+			_agg_loop(column, result, int32_t, _sum_item);
+			break;
+		case INT64:
+			_agg_loop(column, result, int64_t, _sum_item);
+			break;
+		case FLOAT:
+			_agg_loop(column, result, float, _sum_item);
+			break;
+		case DOUBLE:
+			_agg_loop(column, result, double, _sum_item);
+			break;
+	}
+}

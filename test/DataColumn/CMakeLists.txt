@@ -52,3 +52,8 @@ add_executable(dt_column_union_multiple dt_column_union_multiple.c)
 target_include_directories(dt_column_union_multiple PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_union_multiple dt_column)
 add_test(NAME dt_column_union_multiple COMMAND dt_column_union_multiple)
+
+add_executable(dt_column_sum dt_column_sum.c)
+target_include_directories(dt_column_sum PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_sum dt_column)
+add_test(NAME dt_column_sum COMMAND dt_column_sum)

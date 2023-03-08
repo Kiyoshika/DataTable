@@ -148,4 +148,36 @@ dt_column_union_multiple(
 	const size_t n_columns,
 	...);
 
+// a macro for handling arbitrary types to sum values in a column
+#define _sum_item(item, user_data, type) \
+	type* _item = item; \
+	type* _data = user_data; \
+	*_data += *_item;
+
+#define _max_item(item, user_data, type) \
+	type* _item = item; \
+	type* _data = user_data; \
+	if (*_item > *_data) \
+		*_data = *_item;
+
+#define _min_item(item, user_data, type) \
+	type* _item = item; \
+	type* _data = user_data; \
+	if (*_item < *_data) \
+		*_data = *_item;
+
+// a macro for iterating over a column column an arbitrary aggregation macro
+#define _agg_loop(column, user_data, type, agg_func) \
+	for (size_t i = 0; i < column->n_values; ++i) \
+    { \
+		agg_func(get_index_ptr(column, i), user_data, type); \
+	} \
+
+// sum all the values in a column and store result into [result].
+// the type is determined by column->type.
+void
+dt_column_sum(
+	const struct DataColumn* const column,
+	void* result);
+
 #endif
