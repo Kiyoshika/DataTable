@@ -52,3 +52,23 @@ add_executable(dt_column_union_multiple dt_column_union_multiple.c)
 target_include_directories(dt_column_union_multiple PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_union_multiple dt_column)
 add_test(NAME dt_column_union_multiple COMMAND dt_column_union_multiple)
+
+add_executable(dt_column_sum dt_column_sum.c)
+target_include_directories(dt_column_sum PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_sum dt_column)
+add_test(NAME dt_column_sum COMMAND dt_column_sum)
+
+add_executable(dt_column_avg dt_column_avg.c)
+target_include_directories(dt_column_avg PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_avg dt_column)
+add_test(NAME dt_column_avg COMMAND dt_column_avg)
+
+add_executable(dt_column_max dt_column_max.c)
+target_include_directories(dt_column_max PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_max dt_column)
+add_test(NAME dt_column_max COMMAND dt_column_max)
+
+add_executable(dt_column_min dt_column_min.c)
+target_include_directories(dt_column_min PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_min dt_column)
+add_test(NAME dt_column_min COMMAND dt_column_min)
