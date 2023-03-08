@@ -304,3 +304,25 @@ dt_column_union(
 
 	return DT_SUCCESS;
 }
+
+enum status_code_e
+dt_column_union_multiple(
+	struct DataColumn* const dest,
+	const size_t n_columns,
+	...)
+{
+	va_list src_columns;
+	va_start(src_columns, n_columns);
+	enum status_code_e status = DT_SUCCESS;
+
+	for (size_t i = 0; i < n_columns; ++i)
+	{
+		status = dt_column_union(dest, va_arg(src_columns, const struct DataColumn* const));
+		if (status != DT_SUCCESS)
+			goto cleanup;
+	}
+	
+cleanup:
+	va_end(src_columns);
+	return status;
+}
