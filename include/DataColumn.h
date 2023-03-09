@@ -212,4 +212,45 @@ void
 dt_column_avg(
 	const struct DataColumn* const column,
 	void* result);
+
+// for each row in [dest], add the value from the corresponding row from [src].
+// dest += src (for each row).
+// returns DT_SIZE_MISMATCH if columns are different sizes.
+// returns DT_TYPE_MISMATCH if columns are different types.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
+dt_column_add(
+	struct DataColumn* const dest,
+	const struct DataColumn* const src);
+
+// for each row in [dest], subtract the value from the corresponding row from [src].
+// dest -= src (for each row).
+// returns DT_SIZE_MISMATCH if columns are different sizes.
+// returns DT_TYPE_MISMATCH if columns are different types.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
+dt_column_subtract(
+	struct DataColumn* const dest,
+	const struct DataColumn* src);
+
+// for each row in [dest], multiply the value from the corresponding row from [src].
+// dest *= src (for each row).
+// returns DT_SIZE_MISMATCH if columns are different sizes.
+// returns DT_TYPE_MISMATCH if columns are different types.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
+dt_column_multiply(
+	struct DataColumn* const dest,
+	const struct DataColumn* src);
+
+// for each row in [dest], divide the value from the corresponding row from [src].
+// dest /= src (for each row).
+// returns DT_SIZE_MISMATCH if columns are different sizes.
+// returns DT_TYPE_MISMATCH if columns are different types.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
+dt_column_divide(
+	struct DataColumn* const dest,
+	const struct DataColumn* src);
+
 #endif
