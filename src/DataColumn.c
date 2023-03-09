@@ -492,3 +492,228 @@ dt_column_avg(
 			break;
 	}
 }
+
+
+// macros to add values across two columns for arbitrary types
+#define _add_values(dest, src, type) *(type*)dest += *(type*)src
+#define _add_values_loop(dest, src, type) \
+	for (size_t i = 0; i < dest->n_values; ++i) \
+    { \
+		_add_values(get_index_ptr(dest, i), get_index_ptr(src, i), type); \
+	}
+
+enum status_code_e
+dt_column_add(
+	struct DataColumn* const dest,
+	const struct DataColumn* src)
+{
+	if (dest->n_values != src->n_values)
+		return DT_SIZE_MISMATCH;
+
+	if (dest->type != src->type)
+		return DT_TYPE_MISMATCH;
+
+	switch (dest->type)
+	{
+		case UINT8:
+			_add_values_loop(dest, src, uint8_t);
+			break;
+		case UINT16:
+			_add_values_loop(dest, src, uint16_t);
+			break;
+		case UINT32:
+			_add_values_loop(dest, src, uint32_t);
+			break;
+		case UINT64:
+			_add_values_loop(dest, src, uint64_t);
+			break;
+		case INT8:
+			_add_values_loop(dest, src, int8_t);
+			break;
+		case INT16:
+			_add_values_loop(dest, src, int16_t);
+			break;
+		case INT32:
+			_add_values_loop(dest, src, int32_t);
+			break;
+		case INT64:
+			_add_values_loop(dest, src, int64_t);
+			break;
+		case FLOAT:
+			_add_values_loop(dest, src, float);
+			break;
+		case DOUBLE:
+			_add_values_loop(dest, src, double);
+			break;
+	}
+
+	return DT_SUCCESS;
+}
+
+// macros to subtract values across two columns for arbitrary types
+#define _subtract_values(dest, src, type) *(type*)dest -= *(type*)src
+#define _subtract_values_loop(dest, src, type) \
+	for (size_t i = 0; i < dest->n_values; ++i) \
+    { \
+		_subtract_values(get_index_ptr(dest, i), get_index_ptr(src, i), type); \
+	}
+
+enum status_code_e
+dt_column_subtract(
+	struct DataColumn* const dest,
+	const struct DataColumn* src)
+{
+	if (dest->n_values != src->n_values)
+		return DT_SIZE_MISMATCH;
+
+	if (dest->type != src->type)
+		return DT_TYPE_MISMATCH;
+
+	switch (dest->type)
+	{
+		case UINT8:
+			_subtract_values_loop(dest, src, uint8_t);
+			break;
+		case UINT16:
+			_subtract_values_loop(dest, src, uint16_t);
+			break;
+		case UINT32:
+			_subtract_values_loop(dest, src, uint32_t);
+			break;
+		case UINT64:
+			_subtract_values_loop(dest, src, uint64_t);
+			break;
+		case INT8:
+			_subtract_values_loop(dest, src, int8_t);
+			break;
+		case INT16:
+			_subtract_values_loop(dest, src, int16_t);
+			break;
+		case INT32:
+			_subtract_values_loop(dest, src, int32_t);
+			break;
+		case INT64:
+			_subtract_values_loop(dest, src, int64_t);
+			break;
+		case FLOAT:
+			_subtract_values_loop(dest, src, float);
+			break;
+		case DOUBLE:
+			_subtract_values_loop(dest, src, double);
+			break;
+	}
+
+	return DT_SUCCESS;
+}
+
+// macros to multiply values across two columns for arbitrary types
+#define _multiply_values(dest, src, type) *(type*)dest *= *(type*)src
+#define _multiply_values_loop(dest, src, type) \
+	for (size_t i = 0; i < dest->n_values; ++i) \
+    { \
+		_multiply_values(get_index_ptr(dest, i), get_index_ptr(src, i), type); \
+	}
+
+enum status_code_e
+dt_column_multiply(
+	struct DataColumn* const dest,
+	const struct DataColumn* src)
+{
+	if (dest->n_values != src->n_values)
+		return DT_SIZE_MISMATCH;
+
+	if (dest->type != src->type)
+		return DT_TYPE_MISMATCH;
+
+	switch (dest->type)
+	{
+		case UINT8:
+			_multiply_values_loop(dest, src, uint8_t);
+			break;
+		case UINT16:
+			_multiply_values_loop(dest, src, uint16_t);
+			break;
+		case UINT32:
+			_multiply_values_loop(dest, src, uint32_t);
+			break;
+		case UINT64:
+			_multiply_values_loop(dest, src, uint64_t);
+			break;
+		case INT8:
+			_multiply_values_loop(dest, src, int8_t);
+			break;
+		case INT16:
+			_multiply_values_loop(dest, src, int16_t);
+			break;
+		case INT32:
+			_multiply_values_loop(dest, src, int32_t);
+			break;
+		case INT64:
+			_multiply_values_loop(dest, src, int64_t);
+			break;
+		case FLOAT:
+			_multiply_values_loop(dest, src, float);
+			break;
+		case DOUBLE:
+			_multiply_values_loop(dest, src, double);
+			break;
+	}
+
+	return DT_SUCCESS;
+}
+
+// macros to divide values across two columns for arbitrary types
+#define _divide_values(dest, src, type) *(type*)dest /= *(type*)src
+#define _divide_values_loop(dest, src, type) \
+	for (size_t i = 0; i < dest->n_values; ++i) \
+    { \
+		_divide_values(get_index_ptr(dest, i), get_index_ptr(src, i), type); \
+	}
+
+enum status_code_e
+dt_column_divide(
+	struct DataColumn* const dest,
+	const struct DataColumn* src)
+{
+	if (dest->n_values != src->n_values)
+		return DT_SIZE_MISMATCH;
+
+	if (dest->type != src->type)
+		return DT_TYPE_MISMATCH;
+
+	switch (dest->type)
+	{
+		case UINT8:
+			_divide_values_loop(dest, src, uint8_t);
+			break;
+		case UINT16:
+			_divide_values_loop(dest, src, uint16_t);
+			break;
+		case UINT32:
+			_divide_values_loop(dest, src, uint32_t);
+			break;
+		case UINT64:
+			_divide_values_loop(dest, src, uint64_t);
+			break;
+		case INT8:
+			_divide_values_loop(dest, src, int8_t);
+			break;
+		case INT16:
+			_divide_values_loop(dest, src, int16_t);
+			break;
+		case INT32:
+			_divide_values_loop(dest, src, int32_t);
+			break;
+		case INT64:
+			_divide_values_loop(dest, src, int64_t);
+			break;
+		case FLOAT:
+			_divide_values_loop(dest, src, float);
+			break;
+		case DOUBLE:
+			_divide_values_loop(dest, src, double);
+			break;
+	}
+
+	return DT_SUCCESS;
+}

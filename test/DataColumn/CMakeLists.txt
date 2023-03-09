@@ -72,3 +72,23 @@ add_executable(dt_column_min dt_column_min.c)
 target_include_directories(dt_column_min PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_min dt_column)
 add_test(NAME dt_column_min COMMAND dt_column_min)
+
+add_executable(dt_column_add dt_column_add.c)
+target_include_directories(dt_column_add PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_add dt_column)
+add_test(NAME dt_column_add COMMAND dt_column_add)
+
+add_executable(dt_column_subtract dt_column_subtract.c)
+target_include_directories(dt_column_subtract PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_subtract dt_column)
+add_test(NAME dt_column_subtract COMMAND dt_column_subtract)
+
+add_executable(dt_column_multiply dt_column_multiply.c)
+target_include_directories(dt_column_multiply PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_multiply dt_column)
+add_test(NAME dt_column_multiply COMMAND dt_column_multiply)
+
+add_executable(dt_column_divide dt_column_divide.c)
+target_include_directories(dt_column_divide PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_divide dt_column)
+add_test(NAME dt_column_divide COMMAND dt_column_divide)
