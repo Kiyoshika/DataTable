@@ -25,6 +25,8 @@ char* dt_type_to_str(
 			return "UINT32";
 		case UINT64:
 			return "UINT64";
+		case STRING:
+			return "STRING";
 	}
 
 	return "UNKNOWN";
@@ -55,16 +57,28 @@ static size_t get_type_size(
 			return sizeof(uint32_t);
 		case UINT64:
 			return sizeof(uint64_t);
+		case STRING:
+			return sizeof(char*);
 	}
 
 	return 0;
 }
 
-static void* get_index_ptr(
+static void* 
+get_index_ptr(
 	const struct DataColumn* const column,
 	const size_t index)
 {
 	return ((char*)column->value + index * column->type_size);
+}
+
+static void
+dt_string_dealloc(
+	void* item)
+{
+	char** _item = item;
+	free(*_item);
+	*_item = NULL;
 }
 
 enum status_code_e
@@ -90,6 +104,11 @@ dt_column_create(
 	(*column)->n_values = capacity;
 	(*column)->value_capacity = capacity * 2 + 1;
 
+	if (type == STRING)
+		(*column)->deallocator = &dt_string_dealloc;
+	else
+		(*column)->deallocator = NULL;
+
 	return DT_SUCCESS;
 }
 
@@ -97,6 +116,10 @@ void
 dt_column_free(
 	struct DataColumn** column)
 {
+	if ((*column)->deallocator)
+		for (size_t i = 0; i < (*column)->n_values; ++i)
+			dt_string_dealloc(get_index_ptr(*column, i));
+
 	free((*column)->value);
 	(*column)->value = NULL;
 
@@ -157,6 +180,17 @@ dt_column_get_value(
 	memcpy(value, get_index_ptr(column, index), column->type_size);
 
 	return DT_SUCCESS;
+}
+
+void*
+dt_column_get_value_ptr(
+	const struct DataColumn* const column,
+	const size_t index)
+{
+	if (index >= column->n_values)
+		return NULL;
+
+	return get_index_ptr(column, index);
 }
 
 void
