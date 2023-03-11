@@ -140,6 +140,13 @@ dt_column_set_value(
 		return DT_INDEX_ERROR;
 
 	void* value_at = get_index_ptr(column, index);
+
+	// if string type, be sure to deallocate before re-writing
+	if (column->type == STRING)
+	{
+		char** value_str = value_at;
+		free(*value_str);
+	}
 	memcpy(value_at, value, column->type_size);
 
 	return DT_SUCCESS;
@@ -199,7 +206,25 @@ dt_column_fill_values(
 	const void* const value)
 {
 	for (size_t i = 0; i < column->n_values; ++i)
-		dt_column_set_value(column, i, value);
+	{
+		// if string type, each need to be separately heap-allocated
+		if (column->type == STRING)
+		{
+			char* value_str = strdup(*(const char** const)value);
+			dt_column_set_value(column, i, &value_str);
+		}
+		else
+			dt_column_set_value(column, i, value);
+	}
+
+	// free the original string user provided since it's been copied
+	// into every row and no longer needed
+	if (column->type == STRING)
+	{
+		char** original = (char**)value; // cast to avoid warnings about const-ness
+		free(*original);
+		*original = NULL;
+	}
 }
 
 void
@@ -398,6 +423,8 @@ dt_column_sum(
 		case DOUBLE:
 			_agg_loop(column, result, double, _sum_item);
 			break;
+		case STRING: // aggregates on strings not supported (at least, for now)
+			break;
 	}
 }
 
@@ -440,6 +467,8 @@ dt_column_max(
 			break;
 		case DOUBLE:
 			_agg_loop(column, result, double, _max_item);
+			break;
+		case STRING: // aggregates on strings not supported (at least, for now)
 			break;
 	}
 }
@@ -484,6 +513,8 @@ dt_column_min(
 		case DOUBLE:
 			_agg_loop(column, result, double, _min_item);
 			break;
+		case STRING: // aggregates on strings not supported (at least, for now)
+			break;
 	}
 }
 
@@ -523,6 +554,8 @@ dt_column_avg(
 			break;
 		case DOUBLE:
 			_agg_loop_divide_size(column, result, double, _sum_item);
+			break;
+		case STRING: // aggregates on strings not supported (at least, for now)
 			break;
 	}
 }
@@ -578,6 +611,8 @@ dt_column_add(
 			break;
 		case DOUBLE:
 			_add_values_loop(dest, src, double);
+			break;
+		case STRING: // aggregates on strings not supported (at least, for now)
 			break;
 	}
 
@@ -635,6 +670,8 @@ dt_column_subtract(
 		case DOUBLE:
 			_subtract_values_loop(dest, src, double);
 			break;
+		case STRING: // aggregates on strings not supported (at least, for now)
+			break;
 	}
 
 	return DT_SUCCESS;
@@ -691,6 +728,8 @@ dt_column_multiply(
 		case DOUBLE:
 			_multiply_values_loop(dest, src, double);
 			break;
+		case STRING: // aggregates on strings not supported (at least, for now)
+			break;
 	}
 
 	return DT_SUCCESS;
@@ -746,6 +785,8 @@ dt_column_divide(
 			break;
 		case DOUBLE:
 			_divide_values_loop(dest, src, double);
+			break;
+		case STRING: // aggregates on strings not supported (at least, for now)
 			break;
 	}
 
