@@ -21,7 +21,8 @@ enum data_type_e
 	UINT8,
 	UINT16,
 	UINT32,
-	UINT64
+	UINT64,
+	STRING
 };
 
 // convert data type enum to string representation.
@@ -35,6 +36,7 @@ struct DataColumn
 	void* value;
 	size_t n_values;
 	size_t value_capacity;
+	void (*deallocator)(void*);
 };
 
 // pass a NULL-initialized DataTable to allocate [capacity] number of items.
@@ -71,6 +73,11 @@ dt_column_get_value(
 	const struct DataColumn* const column,
 	const size_t index,
 	void* const value);
+
+void*
+dt_column_get_value_ptr(
+	const struct DataColumn* const column,
+	const size_t index);
 
 // fill all values of a column with a specified value
 void

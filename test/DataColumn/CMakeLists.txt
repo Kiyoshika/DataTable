@@ -92,3 +92,9 @@ add_executable(dt_column_divide dt_column_divide.c)
 target_include_directories(dt_column_divide PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_column_divide dt_column)
 add_test(NAME dt_column_divide COMMAND dt_column_divide)
+
+add_executable(dt_column_strings dt_column_strings.c)
+target_include_directories(dt_column_strings PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_column_strings dt_column)
+add_test(NAME dt_column_strings COMMAND dt_column_strings)
+
