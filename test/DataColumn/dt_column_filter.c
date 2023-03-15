@@ -46,35 +46,18 @@ int main()
 	set = 5;
 	dt_column_set_value(column, 4, &set);
 
-	ssize_t n_filtered_items = 0;
-	size_t* filtered_idx = dt_column_filter(column, NULL, &filter_even, &n_filtered_items);
+	size_t* filtered_idx = dt_column_filter(column, NULL, &filter_even);
 
-	if (n_filtered_items != 2)
-	{
-		fprintf(stderr, "Expected # of filtered items to be 2 but got %zu instead.\n", n_filtered_items);
-		goto cleanup;
-	}
+	size_t expected[5] = { 0, 1, 0, 1, 0 };
 
-	// reminder that it returns INDICES of the items, not the actual items themselves
-	if (filtered_idx[0] != 1)
+	for (size_t i = 0; i < 5; ++i)
 	{
-		fprintf(stderr, "Expected first item in filter to be 1 but got %zu instead.\n", filtered_idx[0]);
-		goto cleanup;
-	}
-
-	if (filtered_idx[1] != 3)
-	{
-		fprintf(stderr, "Expected second item in filter to be 3 but got %zu instead.\n", filtered_idx[1]);
-		goto cleanup;
-	}
-
-	free(filtered_idx);
-	filtered_idx = dt_column_filter(column, NULL, &dummy, &n_filtered_items);
-	if (filtered_idx != NULL)
-	{
-		fprintf(stderr, "Expected filter_idx to be NULL after finding 0 items but contains an address.\n");
-		goto cleanup;
-	}
+		if (filtered_idx[i] != expected[i])
+		{
+			fprintf(stderr, "Expected value at index %zu to be %zu but got %zu.\n", i, expected[i], filtered_idx[i]);
+			goto cleanup;
+		}
+	}	
 
 	status = 0;
 cleanup:

@@ -111,15 +111,13 @@ struct DataColumn*
 dt_column_copy(
 	const struct DataColumn* const column);
 
-// iterate each row of column and apply a user callback (with optional user data) and return an array of size_t indices. The size of the returned array is stored in n_items_returned (so just pass a size_t by address).
-// if filter returns nothing, NULL is returned and n_items_returned is set to 0.
-// if an allocation error occurrs, NULL is returned and n_items_returned is set to -1
+// iterate each row of column and apply a user callback (with optional user data) and return an array of 0/1s indicating if the row should be kept or not. The size of the returned array is the same as column->n_values. 
+// if an allocation error occurrs, NULL is returned 
 size_t*
 dt_column_filter(
 	const struct DataColumn* const column,
 	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data),
-	ssize_t* n_items_returned);
+	bool (*filter_callback)(void* item, void* user_data));
 
 // subset a column by specific indices which returns a newly-allocated column or returns NULL on failure (e.g., if one of the indices is out of bounds).
 struct DataColumn*
