@@ -41,6 +41,8 @@ dt_table_create(
 		memcpy(&table->columns[i], &c, sizeof(struct ColumnPair));
 	}
 
+	table->n_rows = 0;
+
 	return table;
 }
 
@@ -56,4 +58,24 @@ dt_table_free(
 
 	free(*table);
 	*table = NULL;
+}
+
+enum status_code_e
+dt_table_insert_row(
+	struct DataTable* const table,
+	size_t n_columns,
+	...)
+{
+	va_list items;
+	va_start(items, n_columns);
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		void* value = va_arg(items, void*);
+		enum status_code_e status = dt_column_append_value(table->columns[i].column, value);
+		if (status != DT_SUCCESS)
+			return status;
+	}
+	va_end(items);
+	table->n_rows++;
+	return DT_SUCCESS;
 }

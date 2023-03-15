@@ -2,3 +2,8 @@ add_executable(dt_table_create dt_table_create.c)
 target_include_directories(dt_table_create PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_create datatable)
 add_test(NAME dt_table_create COMMAND dt_table_create)
+
+add_executable(dt_table_insert_row dt_table_insert_row.c)
+target_include_directories(dt_table_insert_row PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_insert_row datatable)
+add_test(NAME dt_table_insert_row COMMAND dt_table_insert_row)
