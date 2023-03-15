@@ -259,34 +259,18 @@ size_t*
 dt_column_filter(
 	const struct DataColumn* const column,
 	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data),
-	ssize_t* n_items_returned)
+	bool (*filter_callback)(void* item, void* user_data))
 {
-	// initially allocate a size_t array as large as column.
-	// then after filtering is finished, reallocate to the appropriate size.
-	*n_items_returned = 0;
-
+	// an array of 0/1 indicating whether or not to keep the row
 	size_t* filtered_idx = calloc(column->n_values, sizeof(size_t));
 	if (!filtered_idx)
-		goto alloc_fail;
-
-	size_t current_idx = 0;
+		return NULL;
 
 	for (size_t i = 0; i < column->n_values; ++i)
 		if (filter_callback(get_index_ptr(column, i), user_data))
-			filtered_idx[current_idx++] = i;
+			filtered_idx[i] = 1;
 
-	*n_items_returned = current_idx;
-	void* alloc = realloc(filtered_idx, *n_items_returned * sizeof(size_t));
-	if (!alloc)
-		goto alloc_fail;
-	filtered_idx = alloc;
 	return filtered_idx;
-
-alloc_fail:
-	*n_items_returned = -1;
-	return NULL;
-	
 }
 
 struct DataColumn*
