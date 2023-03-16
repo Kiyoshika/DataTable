@@ -147,7 +147,11 @@ dt_column_set_value(
 		char** value_str = value_at;
 		free(*value_str);
 	}
-	memcpy(value_at, value, column->type_size);
+	
+	if (!value)
+		memset(value_at, 0, column->type_size);
+	else
+		memcpy(value_at, value, column->type_size);
 
 	return DT_SUCCESS;
 }
@@ -158,7 +162,10 @@ dt_column_append_value(
 	const void * const value)
 {
 	void* value_at = get_index_ptr(column, column->n_values);
-	memcpy(value_at, value, column->type_size);
+	if (!value)
+		memset(value_at, 0, column->type_size);
+	else
+		memcpy(value_at, value, column->type_size);
 
 	column->n_values++;
 	if (column->n_values >= column->value_capacity)
