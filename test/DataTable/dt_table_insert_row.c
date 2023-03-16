@@ -18,9 +18,12 @@ int main()
 	set2 = 12.52f;
 	dt_table_insert_row(table, 2, &set1, &set2);
 
-	if (table->n_rows != 2)
+	set2 = 21.21f;
+	dt_table_insert_row(table, 2, NULL, &set2);
+
+	if (table->n_rows != 3)
 	{
-		fprintf(stderr, "Expected n_rows to be 2 but got %zu.\n", table->n_rows);
+		fprintf(stderr, "Expected n_rows to be 3 but got %zu.\n", table->n_rows);
 		goto cleanup;
 	}
 	
@@ -51,6 +54,20 @@ int main()
 	if (fabsf(get2 - 12.52f) > 0.0001f)
 	{
 		fprintf(stderr, "Expected value at (1, 1) to be %f but got %f.\n", 12.52f, get2);
+		goto cleanup;
+	}
+
+	dt_column_get_value(table->columns[0].column, 2, &get1);
+	if (get1 != 0)
+	{
+		fprintf(stderr, "Expected value at (2, 0) to be %d but got %d.\n", 0, get1);
+		goto cleanup;
+	}
+
+	dt_column_get_value(table->columns[1].column, 2, &get2);
+	if (fabsf(get2 - 21.21f) > 0.0001f)
+	{
+		fprintf(stderr, "Expected value at (2, 1) to be %f but got %f.\n", 21.21f, get2);
 		goto cleanup;
 	}
 
