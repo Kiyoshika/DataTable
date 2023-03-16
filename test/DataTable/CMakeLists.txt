@@ -7,3 +7,8 @@ add_executable(dt_table_insert_row dt_table_insert_row.c)
 target_include_directories(dt_table_insert_row PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_insert_row datatable)
 add_test(NAME dt_table_insert_row COMMAND dt_table_insert_row)
+
+add_executable(dt_table_get_set_value dt_table_get_set_value.c)
+target_include_directories(dt_table_get_set_value PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_get_set_value datatable)
+add_test(NAME dt_table_get_set_value COMMAND dt_table_get_set_value)

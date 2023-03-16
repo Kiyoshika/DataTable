@@ -47,4 +47,19 @@ dt_table_insert_row(
 	size_t n_columns,
 	...);
 
+// set value at specified row/column index.
+void
+dt_table_set_value(
+	struct DataTable* const table,
+	const size_t row,
+	const size_t column,
+	const void* const value);
+
+// get value at specified row/column index as a pointer
+void*
+dt_table_get_value(
+	const struct DataTable* const table,
+	const size_t row,
+	const size_t column);
+
 #endif
