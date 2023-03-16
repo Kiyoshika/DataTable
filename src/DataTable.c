@@ -79,3 +79,22 @@ dt_table_insert_row(
 	table->n_rows++;
 	return DT_SUCCESS;
 }
+
+void
+dt_table_set_value(
+	struct DataTable* const table,
+	const size_t row,
+	const size_t column,
+	const void* const value)
+{
+	dt_column_set_value(table->columns[column].column, row, value);
+}
+
+void*
+dt_table_get_value(
+	const struct DataTable* const table,
+	const size_t row,
+	const size_t column)
+{
+	return dt_column_get_value_ptr(table->columns[column].column, row);
+}
