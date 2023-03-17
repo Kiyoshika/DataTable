@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "DataColumn.h"
 #include "StatusCodes.h"
@@ -61,5 +62,16 @@ dt_table_get_value(
 	const struct DataTable* const table,
 	const size_t row,
 	const size_t column);
+
+// select a subset of columns and return a COPY of the table.
+// pass the # of columns to select followed by the array of column names.
+// every column MUST be present in original table or NULL will be returned.
+// WARNING: do not directly reassign as you will lose the original pointer and cause a memory leak.
+// returns NULL on failure (e.g., out of memory)
+struct DataTable*
+dt_table_select(
+	const struct DataTable* const table,
+	const size_t n_columns,
+	const char (*columns)[MAX_COL_LEN]);
 
 #endif

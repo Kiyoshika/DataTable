@@ -98,3 +98,77 @@ dt_table_get_value(
 {
 	return dt_column_get_value_ptr(table->columns[column].column, row);
 }
+
+struct DataTable*
+dt_table_select(
+	const struct DataTable* const table,
+	const size_t n_columns,
+	const char (*columns)[MAX_COL_LEN])
+{
+	enum data_type_e* types = malloc(n_columns * sizeof(enum data_type_e));
+	if (!types)
+		return NULL;
+
+	size_t* column_indices = calloc(n_columns, sizeof(size_t));
+	if (!column_indices)
+	{
+		free(types);
+		return NULL;
+	}
+
+	struct DataTable* subset = NULL;
+
+	// fetch data types and indices from original data table.
+	// this is not "optimized" but data sets will probably be small enough
+	// to where this search method isn't terribly slow (unless you have
+	// tens of thousands of columns which probably isn't likely)
+	size_t current_idx = 0;
+	for (size_t i = 0; i < n_columns; ++i)
+	{
+		bool found_column = false;
+		// for every provided column, search the original column list
+		// to find the position and type
+		for (size_t k = 0; k < table->n_columns; ++k)
+		{
+			if (strcmp(columns[i], table->columns[k].name) == 0)
+			{
+				types[current_idx] = table->columns[k].column->type;
+				column_indices[current_idx++] = k;
+				found_column = true;
+				break;
+			}
+		}
+
+		// error if column is not found
+		if (!found_column)
+			goto err;
+	}
+
+	subset = dt_table_create(n_columns, columns, types);
+	if (!subset)
+		goto err;
+	// create copies of each selected column
+	for (size_t i = 0; i < subset->n_columns; ++i)
+	{
+		dt_column_free(&subset->columns[i].column);
+		subset->columns[i].column = dt_column_copy(table->columns[column_indices[i]].column);
+		if (!subset->columns[i].column)
+			goto err;
+	}
+
+	// DONT'T free the newly-created table; skip over "err" label
+	goto cleanup;
+
+
+err:
+	if (subset)
+	{
+		dt_table_free(&subset);
+		subset = NULL;
+	}
+cleanup:
+	free(types);
+	free(column_indices);
+	
+	return subset;
+}
