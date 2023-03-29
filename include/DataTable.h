@@ -74,6 +74,13 @@ dt_table_select(
 	const size_t n_columns,
 	const char (*columns)[MAX_COL_LEN]);
 
+// copy the "skeleton" of a table (column names and types but NOT the data).
+// this is mainly used internally but could be used for very specific use cases.
+// returns NULL on failure.
+struct DataTable*
+dt_table_copy_skeleton(
+	const struct DataTable* const table);
+
 // filter a single column by name and return a (newly-allocated) table
 // containing the rows that matched the filter callback.
 // returns NULL on failure (e.g., out of memory)
@@ -81,6 +88,30 @@ struct DataTable*
 dt_table_filter_by_name(
 	const struct DataTable* const table,
 	const char* const column,
+	void* user_data,
+	bool (*filter_callback)(void* item, void* user_data));
+
+// filter multiple columns specified by [column_names] and return a
+// (newly-allocated) table containing the rows where AT LEAST ONE COLUMN
+// matched the filter callback.
+// returns NULL on failure.
+struct DataTable*
+dt_table_filter_OR_by_name(
+	const struct DataTable* const table,
+	const char(*column_names)[MAX_COL_LEN],
+	const size_t n_columns,
+	void* user_data,
+	bool (*filter_callback)(void* item, void* user_data));
+
+// filter multiple columns specified by [column_names] and return a
+// (newly-allocated) table containing the rows where ALL COLUMNS matched 
+// the filter callback.
+// returns NULL on failure.
+struct DataTable*
+dt_table_filter_AND_by_name(
+	const struct DataTable* const table,
+	const char(*column_names)[MAX_COL_LEN],
+	const size_t n_columns,
 	void* user_data,
 	bool (*filter_callback)(void* item, void* user_data));
 
@@ -94,4 +125,30 @@ dt_table_filter_by_idx(
 	void* user_data,
 	bool (*filter_callback)(void* item, void* user_data));
 
+// TODO: add by_name
+
+// filter multiple columns by index and return a (newly-allocated) table
+// containing the rows where matched AT LEAST ONE COLUMN
+// matched the filter callback for the specified column (passed as an
+// array of function pointers).
+// returns NULL on failure (e.g., out of memory)
+struct DataTable*
+dt_table_filter_OR_by_idx(
+	const struct DataTable* const table,
+	const size_t* column_indices,
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data));
+
+// filter multiple columns by index and return a (newly-allocated) table
+// containing the rows where ALL COLUMNS matched the filter callback
+// for the specified column (passed as an array of function pointers).
+// returns NULL on failure (e.g., out of memory)
+struct DataTable*
+dt_table_filter_AND_by_idx(
+	const struct DataTable* const table,
+	const size_t* column_indices,
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data));
 #endif

@@ -174,7 +174,42 @@ cleanup:
 	return subset;
 }
 
-size_t __get_column_index(
+struct DataTable*
+dt_table_copy_skeleton(
+	const struct DataTable* const table)
+{
+	char(*col_names)[MAX_COL_LEN] = calloc(table->n_columns, sizeof(*col_names));
+	if (!col_names)
+		return NULL;
+
+	enum data_type_e* data_types = calloc(table->n_columns, sizeof(*data_types));
+	if (!data_types)
+	{
+		free(col_names);
+		return NULL;
+	}
+
+	// fetch all the column names and column types to create the prototype
+	// of new table before copying over the filtered data
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		size_t len = strlen(table->columns[i].name);
+		strncpy(col_names[i], table->columns[i].name, len);
+		data_types[i] = table->columns[i].column->type;
+	}
+
+	struct DataTable* skeleton = dt_table_create(
+		table->n_columns,
+		col_names,
+		data_types);
+
+	free(col_names);
+	free(data_types);
+
+	return skeleton;
+}
+
+static size_t __get_column_index(
 	const struct DataTable* const table,
 	const char* const column_name,
 	bool* is_error)
@@ -219,38 +254,8 @@ dt_table_filter_by_idx(
 	if (!filtered_idx)
 		return NULL;
 	
-	char(*col_names)[MAX_COL_LEN] = calloc(table->n_columns, sizeof(*col_names));
-	if (!col_names)
-	{
-		free(filtered_idx);
-		return NULL;
-	}
-
-	enum data_type_e* data_types = calloc(table->n_columns, sizeof(*data_types));
-	if (!data_types)
-	{
-		free(filtered_idx);
-		free(col_names);
-		return NULL;
-	}
-
-	// fetch all the column names and column types to create the prototype
-	// of new table before copying over the filtered data
-	for (size_t i = 0; i < table->n_columns; ++i)
-	{
-		size_t len = strlen(table->columns[i].name);
-		strncpy(col_names[i], table->columns[i].name, len);
-		data_types[i] = table->columns[i].column->type;
-	}
-
-	struct DataTable* filtered_table = dt_table_create(
-		table->n_columns,
-		col_names,
-		data_types);
-
-	free(col_names);
-	free(data_types);
-
+	struct DataTable* filtered_table = dt_table_copy_skeleton(table);
+	
 	// iterate over each column and subset
 	for (size_t i = 0; i < table->n_columns; ++i)
 	{
@@ -264,6 +269,72 @@ dt_table_filter_by_idx(
 	}
 
 	filtered_table->n_rows = filtered_table->columns[0].column->n_values;
+
+	return filtered_table;
+}
+
+// TODO: abstract this entire thing besides the specific logic that computes
+// the OR/AND (checking the filter_idx_array values)
+struct DataTable*
+dt_table_filter_OR_by_idx(
+	const struct DataTable* const table,
+	const size_t* column_indices,
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data))
+{
+	// create pointer to pointer of size_t "arrays" to store the
+	// boolean size_t arrays when calling column filter on each
+	// provided index
+	size_t** filter_idx_arrays = calloc(n_columns, sizeof(*filter_idx_arrays));
+	if (!filter_idx_arrays)
+		return NULL;
+
+	// assign each index the filter for the specified column.
+	// if I were a responsible human, I would check if any of these are NULL
+	// and abort, but we're living on the edge here
+	for (size_t i = 0; i < n_columns; ++i)
+		filter_idx_arrays[i] = dt_column_filter(
+			table->columns[column_indices[i]].column,
+			user_data,
+			filter_callback[i]);
+
+	// create the final "boolean" size_t array which iterates all of
+	// the others (row-by-row) and sets it to 1 if AT LEAST ONE of the
+	// columns is 1 (OR LOGIC)
+	size_t* filter_idx = calloc(table->n_rows, sizeof(size_t));
+
+	for (size_t i = 0; i < table->n_rows; ++i)
+	{
+		for (size_t c = 0; c < n_columns; ++c)
+		{
+			if (filter_idx_arrays[c][i] == 1)
+			{
+				filter_idx[i] = 1;
+				break; // continue to next row
+			}
+		}
+	}
+
+	// create empty skeleton of original table
+	struct DataTable* filtered_table = dt_table_copy_skeleton(table);
+
+	// now finally, assign the columns according to "boolean" array
+	for (size_t c = 0; c < filtered_table->n_columns; ++c)
+	{
+		dt_column_free(&filtered_table->columns[c].column);
+		filtered_table->columns[c].column = dt_column_subset_by_boolean(
+			table->columns[c].column,
+			filter_idx);
+	}
+
+	filtered_table->n_rows = filtered_table->columns[0].column->n_values;
+
+	// cleanup and return
+	free(filter_idx);
+	for (size_t i = 0; i < n_columns; ++i)
+		free(filter_idx_arrays[i]);
+	free(filter_idx_arrays);
 
 	return filtered_table;
 }
