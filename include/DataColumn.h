@@ -119,9 +119,20 @@ dt_column_filter(
 	void* user_data,
 	bool (*filter_callback)(void* item, void* user_data));
 
+// subset a column by a "boolean" size_t array containing 0s and 1s.
+// will skip rows that are 0 and keep the 1s and return a newly-allocated column
+// containing selected values. Assumes the boolean_idx array is the same size
+// as the column.
+// returns NULL on failure (e.g., allocation issue).
+struct DataColumn*
+dt_column_subset_by_boolean(
+	const struct DataColumn* const column,
+	const size_t* const boolean_idx);
+
+
 // subset a column by specific indices which returns a newly-allocated column or returns NULL on failure (e.g., if one of the indices is out of bounds).
 struct DataColumn*
-dt_column_subset(
+dt_column_subset_by_index(
 	const struct DataColumn* const column,
 	const size_t* const indices,
 	const size_t n_indices);

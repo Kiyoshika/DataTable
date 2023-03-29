@@ -74,4 +74,24 @@ dt_table_select(
 	const size_t n_columns,
 	const char (*columns)[MAX_COL_LEN]);
 
+// filter a single column by name and return a (newly-allocated) table
+// containing the rows that matched the filter callback.
+// returns NULL on failure (e.g., out of memory)
+struct DataTable*
+dt_table_filter_by_name(
+	const struct DataTable* const table,
+	const char* const column,
+	void* user_data,
+	bool (*filter_callback)(void* item, void* user_data));
+
+// filter a single column by index and return a (newly-allocated) table
+// containing the rows that matched the filter callback.
+// returns NULL on failure (e.g., out of memory)
+struct DataTable*
+dt_table_filter_by_idx(
+	const struct DataTable* const table,
+	const size_t column_idx,
+	void* user_data,
+	bool (*filter_callback)(void* item, void* user_data));
+
 #endif
