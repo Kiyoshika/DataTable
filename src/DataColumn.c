@@ -281,7 +281,38 @@ dt_column_filter(
 }
 
 struct DataColumn*
-dt_column_subset(
+dt_column_subset_by_boolean(
+	const struct DataColumn* const column,
+	const size_t* const boolean_idx)
+{
+	// determine new size by summing up ones
+	size_t new_size = 0;
+	for (size_t i = 0; i < column->n_values; ++i)
+		new_size += boolean_idx[i];
+
+	struct DataColumn* subset = NULL;
+	dt_column_create(&subset, new_size, column->type);
+
+	if (!subset)
+		return NULL;
+
+	// start copying over values (for all the 1s; ignore 0s)
+	size_t current_idx = 0;
+	for (size_t i = 0; i < column->n_values; ++i)
+	{
+		if (boolean_idx[i] == 1)
+		{
+			void* src = get_index_ptr(column, i);
+			void* dest = get_index_ptr(subset, current_idx++);
+			memcpy(dest, src, column->type_size);
+		}
+	}
+
+	return subset;
+}
+
+struct DataColumn*
+dt_column_subset_by_index(
 	const struct DataColumn* const column,
 	const size_t* const indices,
 	const size_t n_indices)

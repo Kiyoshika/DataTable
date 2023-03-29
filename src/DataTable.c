@@ -1,4 +1,5 @@
 #include "DataTable.h"
+#include "DataColumn.h"
 
 struct DataTable*
 dt_table_create(
@@ -171,4 +172,98 @@ cleanup:
 	free(column_indices);
 	
 	return subset;
+}
+
+size_t __get_column_index(
+	const struct DataTable* const table,
+	const char* const column_name,
+	bool* is_error)
+{
+	*is_error = false;
+
+	for (size_t i = 0; i < table->n_columns; ++i)
+		if (strcmp(table->columns[i].name, column_name) == 0)
+			return i;
+
+	// column not found
+	*is_error = true;
+	return 0;
+}
+
+struct DataTable*
+dt_table_filter_by_name(
+	const struct DataTable* const table,
+	const char* const column,
+	void* user_data,
+	bool (*filter_callback)(void* item, void* user_data))
+{
+	bool is_error = false;
+	size_t column_idx = __get_column_index(table, column, &is_error);
+	if (is_error)
+		return NULL;
+	return dt_table_filter_by_idx(table, column_idx, user_data, filter_callback);
+}
+
+struct DataTable*
+dt_table_filter_by_idx(
+	const struct DataTable* const table,
+	const size_t column_idx,
+	void* user_data,
+	bool (*filter_callback)(void* item, void* user_data))
+{
+	size_t* filtered_idx = dt_column_filter(
+		table->columns[column_idx].column,
+		user_data,
+		filter_callback);
+
+	if (!filtered_idx)
+		return NULL;
+	
+	char(*col_names)[MAX_COL_LEN] = calloc(table->n_columns, sizeof(*col_names));
+	if (!col_names)
+	{
+		free(filtered_idx);
+		return NULL;
+	}
+
+	enum data_type_e* data_types = calloc(table->n_columns, sizeof(*data_types));
+	if (!data_types)
+	{
+		free(filtered_idx);
+		free(col_names);
+		return NULL;
+	}
+
+	// fetch all the column names and column types to create the prototype
+	// of new table before copying over the filtered data
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		size_t len = strlen(table->columns[i].name);
+		strncpy(col_names[i], table->columns[i].name, len);
+		data_types[i] = table->columns[i].column->type;
+	}
+
+	struct DataTable* filtered_table = dt_table_create(
+		table->n_columns,
+		col_names,
+		data_types);
+
+	free(col_names);
+	free(data_types);
+
+	// iterate over each column and subset
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		struct DataColumn* filtered_column = dt_column_subset_by_boolean(
+			table->columns[i].column,
+			filtered_idx,
+			table->n_rows);
+
+		dt_column_free(&filtered_table->columns[i].column);
+		filtered_table->columns[i].column = filtered_column;
+	}
+
+	filtered_table->n_rows = filtered_table->columns[0].column->n_values;
+
+	return filtered_table;
 }
