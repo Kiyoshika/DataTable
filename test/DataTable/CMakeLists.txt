@@ -27,3 +27,9 @@ add_executable(dt_table_filter_OR dt_table_filter_OR.c)
 target_include_directories(dt_table_filter_OR PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_filter_OR datatable)
 add_test(NAME dt_table_filter_OR COMMAND dt_table_filter_OR)
+
+add_executable(dt_table_filter_AND dt_table_filter_AND.c)
+target_include_directories(dt_table_filter_AND PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_filter_AND datatable)
+add_test(NAME dt_table_filter_AND COMMAND dt_table_filter_AND)
+

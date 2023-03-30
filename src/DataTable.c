@@ -1,6 +1,9 @@
 #include "DataTable.h"
 #include "DataColumn.h"
 
+// all internal functions
+#include "DataTable_Internal.c"
+
 struct DataTable*
 dt_table_create(
 	const size_t n_columns,
@@ -209,22 +212,6 @@ dt_table_copy_skeleton(
 	return skeleton;
 }
 
-static size_t __get_column_index(
-	const struct DataTable* const table,
-	const char* const column_name,
-	bool* is_error)
-{
-	*is_error = false;
-
-	for (size_t i = 0; i < table->n_columns; ++i)
-		if (strcmp(table->columns[i].name, column_name) == 0)
-			return i;
-
-	// column not found
-	*is_error = true;
-	return 0;
-}
-
 struct DataTable*
 dt_table_filter_by_name(
 	const struct DataTable* const table,
@@ -273,8 +260,6 @@ dt_table_filter_by_idx(
 	return filtered_table;
 }
 
-// TODO: abstract this entire thing besides the specific logic that computes
-// the OR/AND (checking the filter_idx_array values)
 struct DataTable*
 dt_table_filter_OR_by_idx(
 	const struct DataTable* const table,
@@ -283,58 +268,68 @@ dt_table_filter_OR_by_idx(
 	void* user_data,
 	bool (**filter_callback)(void* item, void* user_data))
 {
-	// create pointer to pointer of size_t "arrays" to store the
-	// boolean size_t arrays when calling column filter on each
-	// provided index
-	size_t** filter_idx_arrays = calloc(n_columns, sizeof(*filter_idx_arrays));
-	if (!filter_idx_arrays)
+	return __filter_multiple(
+		table,
+		column_indices,
+		n_columns,
+		user_data,
+		filter_callback,
+		&or_callback);
+}
+
+struct DataTable*
+dt_table_filter_AND_by_idx(
+	const struct DataTable* const table,
+	const size_t* column_indices,
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data))
+{
+	return __filter_multiple(
+		table,
+		column_indices,
+		n_columns,
+		user_data,
+		filter_callback,
+		&and_callback);
+}
+
+struct DataTable*
+dt_table_filter_OR_by_name(
+	const struct DataTable* const table,
+	const char(*column_names)[MAX_COL_LEN],
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data))
+{
+	size_t* column_indices = __get_multiple_column_indices(table, column_names, n_columns);
+	if (!column_indices)
 		return NULL;
 
-	// assign each index the filter for the specified column.
-	// if I were a responsible human, I would check if any of these are NULL
-	// and abort, but we're living on the edge here
-	for (size_t i = 0; i < n_columns; ++i)
-		filter_idx_arrays[i] = dt_column_filter(
-			table->columns[column_indices[i]].column,
-			user_data,
-			filter_callback[i]);
+	return dt_table_filter_OR_by_idx(
+		table,
+		column_indices,
+		n_columns,
+		user_data,
+		filter_callback);
+}
 
-	// create the final "boolean" size_t array which iterates all of
-	// the others (row-by-row) and sets it to 1 if AT LEAST ONE of the
-	// columns is 1 (OR LOGIC)
-	size_t* filter_idx = calloc(table->n_rows, sizeof(size_t));
+struct DataTable*
+dt_table_filter_AND_by_name(
+	const struct DataTable* const table,
+	const char(*column_names)[MAX_COL_LEN],
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data))
+{
+	size_t* column_indices = __get_multiple_column_indices(table, column_names, n_columns);
+	if (!column_indices)
+		return NULL;
 
-	for (size_t i = 0; i < table->n_rows; ++i)
-	{
-		for (size_t c = 0; c < n_columns; ++c)
-		{
-			if (filter_idx_arrays[c][i] == 1)
-			{
-				filter_idx[i] = 1;
-				break; // continue to next row
-			}
-		}
-	}
-
-	// create empty skeleton of original table
-	struct DataTable* filtered_table = dt_table_copy_skeleton(table);
-
-	// now finally, assign the columns according to "boolean" array
-	for (size_t c = 0; c < filtered_table->n_columns; ++c)
-	{
-		dt_column_free(&filtered_table->columns[c].column);
-		filtered_table->columns[c].column = dt_column_subset_by_boolean(
-			table->columns[c].column,
-			filter_idx);
-	}
-
-	filtered_table->n_rows = filtered_table->columns[0].column->n_values;
-
-	// cleanup and return
-	free(filter_idx);
-	for (size_t i = 0; i < n_columns; ++i)
-		free(filter_idx_arrays[i]);
-	free(filter_idx_arrays);
-
-	return filtered_table;
+	return dt_table_filter_AND_by_idx(
+		table,
+		column_indices,
+		n_columns,
+		user_data,
+		filter_callback);
 }

@@ -6,14 +6,14 @@ bool col1_filter(void* item, void* user_data)
 {
 	(void)user_data; // unused
 	int32_t* _item = item;
-	return *_item >= 20;
+	return *_item >= 10;
 }
 
 bool col2_filter(void* item, void* user_data)
 {
 	(void)user_data; // unused
 	float* _item = item;
-	return *_item > 15.0f;
+	return *_item > 5.0f;
 }
 
 int main()
@@ -39,8 +39,8 @@ int main()
 	size_t filter_idx[2] = { 0, 1 }; // both columns
 	bool (*callbacks[2])(void*, void*) = { &col1_filter, &col2_filter };
 
-	// filter for col1 >= 20 || col2 > 15.0f
-	struct DataTable* filtered = dt_table_filter_OR_by_idx(
+	// filter for col1 >= 10 && col2 > 5.0f
+	struct DataTable* filtered = dt_table_filter_AND_by_idx(
 		table,
 		filter_idx,
 		2,
@@ -54,30 +54,30 @@ int main()
 	}
 
 	int32_t* get_int = dt_table_get_value(filtered, 0, 0);
-	if (*get_int != 20)
+	if (*get_int != 10)
 	{
-		fprintf(stderr, "Expected value at (0, 0) in filtered to be 20 but got %d.\n", *get_int);
+		fprintf(stderr, "Expected value at (0, 0) in filtered to be 10 but got %d.\n", *get_int);
 		goto cleanup;
 	}
 
 	get_int = dt_table_get_value(filtered, 1, 0);
-	if (*get_int != 5)
+	if (*get_int != 20)
 	{
-		fprintf(stderr, "Expected value at (1, 0) in filtered to be 5 but got %d.\n", *get_int);
+		fprintf(stderr, "Expected value at (1, 0) in filtered to be 20 but got %d.\n", *get_int);
 		goto cleanup;
 	}
 
 	float* get_float = dt_table_get_value(filtered, 0, 1);
-	if (fabsf(*get_float - 12.52f) > 0.0001f)
+	if (fabsf(*get_float - 5.5f) > 0.0001f)
 	{
-		fprintf(stderr, "Expected value at (0, 1) in filtered to be 12.52 but got %f.\n", *get_float);
+		fprintf(stderr, "Expected value at (0, 1) in filtered to be 5.5 but got %f.\n", *get_float);
 		goto cleanup;
 	}
 
 	get_float = dt_table_get_value(filtered, 1, 1);
-	if (fabsf(*get_float - 21.21f) > 0.0001f)
+	if (fabsf(*get_float - 12.52f) > 0.0001f)
 	{
-		fprintf(stderr, "Expected value at (1, 1) in filtered to be 21.21 but got %f.\n", *get_float);
+		fprintf(stderr, "Expected value at (1, 1) in filtered to be 12.52 but got %f.\n", *get_float);
 		goto cleanup;
 	}
 
@@ -85,7 +85,7 @@ int main()
 	const char filter_names[2][MAX_COL_LEN] = { "col1", "col2" };
 
 	// filter for col1 >= 20 || col2 > 15.0f
-	struct DataTable* filtered2 = dt_table_filter_OR_by_name(
+	struct DataTable* filtered2 = dt_table_filter_AND_by_name(
 		table,
 		filter_names,
 		2,
@@ -99,30 +99,30 @@ int main()
 	}
 
 	get_int = dt_table_get_value(filtered2, 0, 0);
-	if (*get_int != 20)
+	if (*get_int != 10)
 	{
-		fprintf(stderr, "Expected value at (0, 0) in filtered2 to be 20 but got %d.\n", *get_int);
+		fprintf(stderr, "Expected value at (0, 0) in filtered2 to be 10 but got %d.\n", *get_int);
 		goto cleanup;
 	}
 
 	get_int = dt_table_get_value(filtered2, 1, 0);
-	if (*get_int != 5)
+	if (*get_int != 20)
 	{
-		fprintf(stderr, "Expected value at (1, 0) in filtered2 to be 5 but got %d.\n", *get_int);
+		fprintf(stderr, "Expected value at (1, 0) in filtered2 to be 20 but got %d.\n", *get_int);
 		goto cleanup;
 	}
 
 	get_float = dt_table_get_value(filtered2, 0, 1);
-	if (fabsf(*get_float - 12.52f) > 0.0001f)
+	if (fabsf(*get_float - 5.5f) > 0.0001f)
 	{
-		fprintf(stderr, "Expected value at (0, 1) in filtered2 to be 12.52 but got %f.\n", *get_float);
+		fprintf(stderr, "Expected value at (0, 1) in filtered2 to be 5.5 but got %f.\n", *get_float);
 		goto cleanup;
 	}
 
 	get_float = dt_table_get_value(filtered2, 1, 1);
-	if (fabsf(*get_float - 21.21f) > 0.0001f)
+	if (fabsf(*get_float - 12.52f) > 0.0001f)
 	{
-		fprintf(stderr, "Expected value at (1, 1) in filtered2 to be 21.21 but got %f.\n", *get_float);
+		fprintf(stderr, "Expected value at (1, 1) in filtered2 to be 12.52 but got %f.\n", *get_float);
 		goto cleanup;
 	}
 
