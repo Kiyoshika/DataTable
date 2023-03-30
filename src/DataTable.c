@@ -1,6 +1,9 @@
 #include "DataTable.h"
 #include "DataColumn.h"
 
+// all internal functions
+#include "DataTable_Internal.c"
+
 struct DataTable*
 dt_table_create(
 	const size_t n_columns,
@@ -174,20 +177,39 @@ cleanup:
 	return subset;
 }
 
-size_t __get_column_index(
-	const struct DataTable* const table,
-	const char* const column_name,
-	bool* is_error)
+struct DataTable*
+dt_table_copy_skeleton(
+	const struct DataTable* const table)
 {
-	*is_error = false;
+	char(*col_names)[MAX_COL_LEN] = calloc(table->n_columns, sizeof(*col_names));
+	if (!col_names)
+		return NULL;
 
+	enum data_type_e* data_types = calloc(table->n_columns, sizeof(*data_types));
+	if (!data_types)
+	{
+		free(col_names);
+		return NULL;
+	}
+
+	// fetch all the column names and column types to create the prototype
+	// of new table before copying over the filtered data
 	for (size_t i = 0; i < table->n_columns; ++i)
-		if (strcmp(table->columns[i].name, column_name) == 0)
-			return i;
+	{
+		size_t len = strlen(table->columns[i].name);
+		strncpy(col_names[i], table->columns[i].name, len);
+		data_types[i] = table->columns[i].column->type;
+	}
 
-	// column not found
-	*is_error = true;
-	return 0;
+	struct DataTable* skeleton = dt_table_create(
+		table->n_columns,
+		col_names,
+		data_types);
+
+	free(col_names);
+	free(data_types);
+
+	return skeleton;
 }
 
 struct DataTable*
@@ -219,38 +241,8 @@ dt_table_filter_by_idx(
 	if (!filtered_idx)
 		return NULL;
 	
-	char(*col_names)[MAX_COL_LEN] = calloc(table->n_columns, sizeof(*col_names));
-	if (!col_names)
-	{
-		free(filtered_idx);
-		return NULL;
-	}
-
-	enum data_type_e* data_types = calloc(table->n_columns, sizeof(*data_types));
-	if (!data_types)
-	{
-		free(filtered_idx);
-		free(col_names);
-		return NULL;
-	}
-
-	// fetch all the column names and column types to create the prototype
-	// of new table before copying over the filtered data
-	for (size_t i = 0; i < table->n_columns; ++i)
-	{
-		size_t len = strlen(table->columns[i].name);
-		strncpy(col_names[i], table->columns[i].name, len);
-		data_types[i] = table->columns[i].column->type;
-	}
-
-	struct DataTable* filtered_table = dt_table_create(
-		table->n_columns,
-		col_names,
-		data_types);
-
-	free(col_names);
-	free(data_types);
-
+	struct DataTable* filtered_table = dt_table_copy_skeleton(table);
+	
 	// iterate over each column and subset
 	for (size_t i = 0; i < table->n_columns; ++i)
 	{
@@ -266,4 +258,78 @@ dt_table_filter_by_idx(
 	filtered_table->n_rows = filtered_table->columns[0].column->n_values;
 
 	return filtered_table;
+}
+
+struct DataTable*
+dt_table_filter_OR_by_idx(
+	const struct DataTable* const table,
+	const size_t* column_indices,
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data))
+{
+	return __filter_multiple(
+		table,
+		column_indices,
+		n_columns,
+		user_data,
+		filter_callback,
+		&or_callback);
+}
+
+struct DataTable*
+dt_table_filter_AND_by_idx(
+	const struct DataTable* const table,
+	const size_t* column_indices,
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data))
+{
+	return __filter_multiple(
+		table,
+		column_indices,
+		n_columns,
+		user_data,
+		filter_callback,
+		&and_callback);
+}
+
+struct DataTable*
+dt_table_filter_OR_by_name(
+	const struct DataTable* const table,
+	const char(*column_names)[MAX_COL_LEN],
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data))
+{
+	size_t* column_indices = __get_multiple_column_indices(table, column_names, n_columns);
+	if (!column_indices)
+		return NULL;
+
+	return dt_table_filter_OR_by_idx(
+		table,
+		column_indices,
+		n_columns,
+		user_data,
+		filter_callback);
+}
+
+struct DataTable*
+dt_table_filter_AND_by_name(
+	const struct DataTable* const table,
+	const char(*column_names)[MAX_COL_LEN],
+	const size_t n_columns,
+	void* user_data,
+	bool (**filter_callback)(void* item, void* user_data))
+{
+	size_t* column_indices = __get_multiple_column_indices(table, column_names, n_columns);
+	if (!column_indices)
+		return NULL;
+
+	return dt_table_filter_AND_by_idx(
+		table,
+		column_indices,
+		n_columns,
+		user_data,
+		filter_callback);
 }
