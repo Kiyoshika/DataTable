@@ -84,7 +84,7 @@ int main()
 	// exact same tests but passing column names instead of indices
 	const char filter_names[2][MAX_COL_LEN] = { "col1", "col2" };
 
-	// filter for col1 >= 20 || col2 > 15.0f
+	// filter for col1 >= 20 && col2 > 15.0f
 	struct DataTable* filtered2 = dt_table_filter_AND_by_name(
 		table,
 		filter_names,
