@@ -256,7 +256,16 @@ dt_column_copy(
 	{
 		void* source = get_index_ptr(column, i);
 		void* dest = get_index_ptr(copy_column, i);
-		memcpy(dest, source, column->type_size);
+		// creating a deep copy, so if the data is heap-allocated,
+		// we need to heap-allocate a copy as well
+		if (column->type == STRING)
+		{
+			char** source_addr = source;
+			char* source_content = strdup(*source_addr);
+			memcpy(dest, &source_content, copy_column->type_size);
+		}
+		else
+			memcpy(dest, source, column->type_size);
 	}
 
 	return copy_column;

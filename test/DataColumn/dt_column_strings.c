@@ -6,6 +6,7 @@ int main()
 	int status = -1;
 
 	struct DataColumn* column = NULL;
+	struct DataColumn* copy = NULL;
 	dt_column_create(&column, 5, STRING);
 
 	char* set = strdup("hello there");
@@ -44,8 +45,24 @@ int main()
 		}
 	}
 
+	// when creating a copy, it should be a deep copy, so the addresses
+	// of the strings should all be different
+	copy = dt_column_copy(column);
+	for (size_t i = 0; i < column->n_values; ++i)
+	{
+		get = dt_column_get_value_ptr(column, i);
+		char** get2 = dt_column_get_value_ptr(copy, i);
+		if (get == get2)
+		{
+			fprintf(stderr, "Addresses of strings should be different when creating a copy.\n");
+			goto cleanup;
+		}
+	}
+
 	status = 0;
 cleanup:
 	dt_column_free(&column);
+	if (copy)
+		dt_column_free(&copy);
 	return status;
 }

@@ -37,3 +37,8 @@ add_executable(dt_table_get_column dt_table_get_column.c)
 target_include_directories(dt_table_get_column PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_get_column datatable)
 add_test(NAME dt_table_get_column COMMAND dt_table_get_column)
+
+add_executable(dt_table_copy dt_table_copy.c)
+target_include_directories(dt_table_copy PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_copy datatable)
+add_test(NAME dt_table_copy COMMAND dt_table_copy)
