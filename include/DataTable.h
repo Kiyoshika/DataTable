@@ -170,4 +170,24 @@ struct DataTable*
 dt_table_copy(
 	const struct DataTable* const table);
 
+// append two tables together (dest is modified inplace)
+// returns DT_SIZE_MISMATCH if n_columns don't match
+// returns DT_TYPE_MISMATCH if each column do not have same types
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_table_append_single(
+	struct DataTable* const dest,
+	const struct DataTable* const src);
+
+// append multiple tables together (dest is modified inplace)
+// by specifying n_tables and passing all tables to append as additional args.
+// returns DT_SIZE_MISMATCH if n_columns don't match between dest and any of the other tables
+// returns DT_TYPE_MISMATCH if column types don't match between dest and any of the other tables
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_table_append(
+	struct DataTable* const dest,
+	const size_t n_tables,
+	...);
+
 #endif

@@ -42,3 +42,8 @@ add_executable(dt_table_copy dt_table_copy.c)
 target_include_directories(dt_table_copy PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_copy datatable)
 add_test(NAME dt_table_copy COMMAND dt_table_copy)
+
+add_executable(dt_table_append dt_table_append.c)
+target_include_directories(dt_table_append PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_append datatable)
+add_test(NAME dt_table_append COMMAND dt_table_append)

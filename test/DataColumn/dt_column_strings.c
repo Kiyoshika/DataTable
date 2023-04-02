@@ -20,9 +20,11 @@ int main()
 		goto cleanup;
 	}
 
-	// note: we're not losing the old pointer because the address is written into the column
+	// append value will create a new heap copy for heap-allocated objects
+	// so we manually have to free these local copies)
 	set = strdup("this is appended");
 	dt_column_append_value(column, &set);
+	free(set);
 
 	get = dt_column_get_value_ptr(column, 5);
 	if (strcmp(*get, "this is appended") != 0)
@@ -31,9 +33,9 @@ int main()
 		goto cleanup;
 	}
 
-	// note: this string is cleaned up when calling free, DO NOT manually free it!!!
 	set = strdup("these values are filled");
 	dt_column_fill_values(column, &set);
+	free(set);
 
 	for (size_t i = 0; i < column->n_values; ++i)
 	{

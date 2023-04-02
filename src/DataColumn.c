@@ -165,7 +165,18 @@ dt_column_append_value(
 	if (!value)
 		memset(value_at, 0, column->type_size);
 	else
-		memcpy(value_at, value, column->type_size);
+	{
+		// if column type is heap-allocated, a NEW copy is created
+		// before appending into column
+		if (column->type == STRING)
+		{
+			const char** const value_str_addr = (const char** const)value;
+			const char* const value_str = strdup(*value_str_addr);
+			memcpy(value_at, &value_str, column->type_size);
+		}
+		else
+			memcpy(value_at, value, column->type_size);
+	}
 
 	column->n_values++;
 	if (column->n_values >= column->value_capacity)
@@ -177,6 +188,27 @@ dt_column_append_value(
 		column->value_capacity *= 2;
 		for (size_t i = column->n_values; i < column->value_capacity; ++i)
 			memset(get_index_ptr(column, i), 0, column->type_size);
+	}
+
+	return DT_SUCCESS;
+}
+
+enum status_code_e
+dt_column_append(
+	struct DataColumn* const dest,
+	const struct DataColumn* const src)
+{
+	if (dest->type != src->type)
+		return DT_TYPE_MISMATCH;
+
+	for (size_t i = 0; i < src->n_values; ++i)
+	{
+		enum status_code_e status = dt_column_append_value(
+				dest,
+				get_index_ptr(src, i));
+
+		if (status != DT_SUCCESS)
+			return status;
 	}
 
 	return DT_SUCCESS;
