@@ -66,6 +66,15 @@ dt_column_append_value(
 	struct DataColumn* const column,
 	const void * const value);
 
+// append two columns together (dest is modified in place)
+// returns DT_ALLOC_ERR if there was a problem reallocating memory
+// returns DT_TYPE_MISMATCH if column types are not the same
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_column_append(
+	struct DataColumn* const dest,
+	const struct DataColumn* const src);
+
 // fetch the item at specified position and copy its contents into value pointer.
 // returns DT_INDEX_ERROR if index is out of bounds, DT_SUCCESS otherwise.
 enum status_code_e

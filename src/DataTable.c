@@ -390,3 +390,45 @@ dt_table_copy(
 
 	return copy;
 }
+
+enum status_code_e
+dt_table_append_single(
+	struct DataTable* const dest,
+	const struct DataTable* const src)
+{
+	if (dest->n_columns != src->n_columns)
+		return DT_SIZE_MISMATCH;
+
+	for (size_t i = 0; i < dest->n_columns; ++i)
+	{
+		enum status_code_e status = dt_column_append(
+				dest->columns[i].column,
+				src->columns[i].column);
+
+		if (status != DT_SUCCESS)
+			return status;
+	}
+
+	dest->n_rows += src->n_rows;
+
+	return DT_SUCCESS;
+}
+
+enum status_code_e
+dt_table_append(
+	struct DataTable* const dest,
+	const size_t n_tables,
+	...)
+{
+	va_list tables;
+	va_start(tables, n_tables);
+
+	for (size_t i = 0; i < n_tables; ++i)
+	{
+		enum status_code_e status_code;
+		if ((status_code = dt_table_append_single(dest, va_arg(tables, const struct DataTable*))) != DT_SUCCESS)
+			return status_code;
+	}
+
+	return DT_SUCCESS;
+}
