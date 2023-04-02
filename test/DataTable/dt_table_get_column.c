@@ -1,15 +1,6 @@
 #include "DataTable.h"
 #include <stdio.h>
 
-bool my_callback(void* item, void* user_data)
-{
-	// unused
-	(void)user_data;
-
-	int32_t* _item = item;
-	return *_item < 20;
-}
-
 int main()
 {
 	int status = -1;
@@ -30,29 +21,30 @@ int main()
 	set2 = 21.21f;
 	dt_table_insert_row(table, 2, &set1, &set2);
 
-	// filter col1 for values < 20
-	struct DataTable* filtered_table = dt_table_filter_by_name(
-		table,
-		"col1",
-		NULL,
-		&my_callback);
-
-	if (filtered_table->n_rows != 1)
+	struct DataColumn* get = dt_table_get_column_ptr_by_index(table, 5);
+	if (get != NULL)
 	{
-		fprintf(stderr, "Expected n_rows to be 1 but got %zu.\n", filtered_table->n_rows);
+		fprintf(stderr, "Expected NULL after fetching column index 5.\n");
 		goto cleanup;
 	}
 
-	int32_t* get = dt_table_get_value(filtered_table, 0, 0);
-	if (*get != 10)
+	get = dt_table_get_column_ptr_by_name(table, "aliens");
+	if (get != NULL)
 	{
-		fprintf(stderr, "Expected value at (0, 0) to be 10 but got %d.\n", *get);
+		fprintf(stderr, "Expected NULL after fetching column name 'aliens'.\n");
+		goto cleanup;
+	}
+
+	get = dt_table_get_column_ptr_by_name(table, "col2");
+	// compare addresses
+	if (get != table->columns[1].column)
+	{
+		fprintf(stderr, "Address of 'col2' does not match what's in table.\n");
 		goto cleanup;
 	}
 
 	status = 0;
 cleanup:
 	dt_table_free(&table);
-	dt_table_free(&filtered_table);
 	return status;
 }
