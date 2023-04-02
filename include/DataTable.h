@@ -151,4 +151,19 @@ dt_table_filter_AND_by_idx(
 	const size_t n_columns,
 	void* user_data,
 	bool (**filter_callback)(void* item, void* user_data));
+
+// return a pointer to a column (NOT a copy).
+// returns NULL if column is not found.
+struct DataColumn*
+dt_table_get_column_ptr_by_name(
+	const struct DataTable* const table,
+	const char* const column_name);
+
+// return a pointer to a column (NOT a copy).
+// returns NULL if index is out of bounds.
+struct DataColumn*
+dt_table_get_column_ptr_by_index(
+	const struct DataTable* const table,
+	const size_t column_idx);
+
 #endif

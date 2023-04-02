@@ -339,3 +339,28 @@ dt_table_filter_AND_by_name(
 	free(column_indices);
 	return filtered;
 }
+
+struct DataColumn*
+dt_table_get_column_ptr_by_name(
+	const struct DataTable* const table,
+	const char* const column_name)
+{
+	bool is_error = false;
+	const size_t column_idx = __get_column_index(table, column_name, &is_error);
+
+	if (is_error)
+		return NULL;
+
+	return dt_table_get_column_ptr_by_index(table, column_idx);
+}
+
+struct DataColumn*
+dt_table_get_column_ptr_by_index(
+	const struct DataTable* const table,
+	const size_t column_idx)
+{
+	if (column_idx >= table->n_columns)
+		return NULL;
+
+	return table->columns[column_idx].column;
+}
