@@ -125,8 +125,6 @@ dt_table_filter_by_idx(
 	void* user_data,
 	bool (*filter_callback)(void* item, void* user_data));
 
-// TODO: add by_name
-
 // filter multiple columns by index and return a (newly-allocated) table
 // containing the rows where matched AT LEAST ONE COLUMN
 // matched the filter callback for the specified column (passed as an
@@ -165,5 +163,11 @@ struct DataColumn*
 dt_table_get_column_ptr_by_index(
 	const struct DataTable* const table,
 	const size_t column_idx);
+
+// return deep copy of entire table.
+// returns NULL on failure.
+struct DataTable*
+dt_table_copy(
+	const struct DataTable* const table);
 
 #endif

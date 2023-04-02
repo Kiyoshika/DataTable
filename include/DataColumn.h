@@ -105,7 +105,9 @@ dt_column_iterate_rows(
 	void* user_data,
 	void (*user_callback)(void* item, void* user_data));
 
-// copy contents of a column into a newly-allocated column.
+// create a deep copy of a column.
+// i.e., if data inside column is heap-allocated, there will be NEW
+// heap-allocated objects in the newly-created column.
 // returns NULL on failure (e.g., allocation issue).
 struct DataColumn*
 dt_column_copy(

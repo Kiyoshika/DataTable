@@ -364,3 +364,29 @@ dt_table_get_column_ptr_by_index(
 
 	return table->columns[column_idx].column;
 }
+
+struct DataTable*
+dt_table_copy(
+	const struct DataTable* const table)
+{
+	struct DataTable* copy = dt_table_copy_skeleton(table);
+	if (!copy)
+		return NULL;
+
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		dt_column_free(&copy->columns[i].column);
+		copy->columns[i].column = dt_column_copy(table->columns[i].column);
+
+		// cleanup on failure
+		if (!copy->columns[i].column)
+		{
+			for (size_t k = 0; k < i; ++k)
+				dt_column_free(&copy->columns[i].column);
+			dt_table_free(&copy);
+			return NULL;
+		}
+	}
+
+	return copy;
+}
