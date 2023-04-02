@@ -248,8 +248,7 @@ dt_table_filter_by_idx(
 	{
 		struct DataColumn* filtered_column = dt_column_subset_by_boolean(
 			table->columns[i].column,
-			filtered_idx,
-			table->n_rows);
+			filtered_idx);
 
 		dt_column_free(&filtered_table->columns[i].column);
 		filtered_table->columns[i].column = filtered_column;
@@ -257,6 +256,7 @@ dt_table_filter_by_idx(
 
 	filtered_table->n_rows = filtered_table->columns[0].column->n_values;
 
+	free(filtered_idx);
 	return filtered_table;
 }
 
@@ -306,12 +306,15 @@ dt_table_filter_OR_by_name(
 	if (!column_indices)
 		return NULL;
 
-	return dt_table_filter_OR_by_idx(
+	struct DataTable* filtered = dt_table_filter_OR_by_idx(
 		table,
 		column_indices,
 		n_columns,
 		user_data,
 		filter_callback);
+
+	free(column_indices);
+	return filtered;
 }
 
 struct DataTable*
@@ -326,10 +329,13 @@ dt_table_filter_AND_by_name(
 	if (!column_indices)
 		return NULL;
 
-	return dt_table_filter_AND_by_idx(
+	struct DataTable* filtered = dt_table_filter_AND_by_idx(
 		table,
 		column_indices,
 		n_columns,
 		user_data,
 		filter_callback);
+
+	free(column_indices);
+	return filtered;
 }

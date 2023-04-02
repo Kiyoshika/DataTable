@@ -119,7 +119,7 @@ __filter_multiple(
 	const size_t n_columns,
 	void* user_data,
 	bool (**filter_callback)(void* item, void* user_data),
-	size_t* (*or_and_callback)(size_t** boolean_arrays))
+	size_t* (*or_and_callback)(size_t** boolean_arrays, size_t n_rows, size_t n_columns))
 {
 	// create pointer to pointer of size_t "arrays" to store the
 	// boolean size_t arrays when calling column filter on each
