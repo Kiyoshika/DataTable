@@ -52,3 +52,8 @@ add_executable(dt_hash_table dt_hash_table.c)
 target_include_directories(dt_hash_table PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_hash_table datatable)
 add_test(NAME dt_hash_table COMMAND dt_hash_table)
+
+add_executable(dt_table_distinct dt_table_distinct.c)
+target_include_directories(dt_table_distinct PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_distinct datatable)
+add_test(NAME dt_table_distinct COMMAND dt_table_distinct)

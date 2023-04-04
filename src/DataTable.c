@@ -1,5 +1,6 @@
 #include "DataTable.h"
 #include "DataColumn.h"
+#include "HashTable.h"
 
 // all internal functions
 #include "DataTable_Internal.c"
@@ -459,3 +460,47 @@ dt_table_rows_equal(
 
 	return true;
 }	
+
+enum status_code_e
+dt_table_insert_empty_row(
+	struct DataTable* const table)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		enum status_code_e status = dt_column_append_value(table->columns[i].column, NULL);
+		if (status != DT_SUCCESS)
+			return status;
+	}
+
+	table->n_rows++;
+	return DT_SUCCESS;
+}
+
+struct DataTable*
+dt_table_distinct(
+	const struct DataTable* table)
+{
+	struct DataTable* distinct = dt_table_copy_skeleton(table);
+
+	if (!distinct)
+		return NULL;
+
+	struct HashTable* htable = hash_create(table, false);
+
+	for (size_t i = 0; i < table->n_rows; ++i)
+	{
+		if (!hash_contains(htable, table, i))
+		{
+			if (__transfer_row(distinct, table, i) != DT_SUCCESS)
+			{
+				hash_free(&htable);
+				dt_table_free(&distinct);
+				return NULL;
+			}
+			hash_insert(htable, i);
+		}
+	}
+
+	hash_free(&htable);
+	return distinct;
+}

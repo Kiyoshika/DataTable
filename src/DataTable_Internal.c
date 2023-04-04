@@ -528,3 +528,28 @@ __two_values_equal(
 	// when we build in user-defined type support in DataTables.
 }
 
+// take a row from src table (at src_row_idx) and insert it (append) into
+// dest table.
+// NOTE: this makes the assumption that number of columns AND column types
+// are the same.
+enum status_code_e
+__transfer_row(
+	struct DataTable* const dest,
+	const struct DataTable* const src,
+	const size_t src_row_idx)
+{
+	enum status_code_e status = dt_table_insert_empty_row(dest);
+	if (status != DT_SUCCESS)
+		return status;
+
+	for (size_t i = 0; i < dest->n_columns; ++i)
+	{
+		void* value = dt_table_get_value(src, src_row_idx, i);
+		// be careful with unsigned subtraction...
+		size_t dest_row = dest->n_rows == 0 ? 0 : dest->n_rows - 1;
+		dt_table_set_value(dest, dest_row, i, value);
+	}
+
+	return DT_SUCCESS;
+}
+
