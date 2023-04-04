@@ -4,7 +4,7 @@
  * this is mainly so it's more convenient to find internal functions instead of digging
  * through hundreds of lines of code
  */
-
+#include <math.h>
 
 
 // get the column index for a specific column name.
@@ -170,5 +170,361 @@ __filter_multiple(
 	free(filter_idx_arrays);
 
 	return filtered_table;
+}
+
+#define dt_int_compare(value1, value1_type, value2, value2_type, result) \
+	*result = *(value1_type*)value1 == *(value2_type*)value2;
+
+#define dt_float_compare(value1, value2, result) \
+	*result = !(fabsf(*(float*)value1 - *(float*)value2) > 0.00000001f);
+
+#define dt_double_compare(value1, value2, result) \
+	*result = !(fabs(*(double*)value1 - *(double*)value2) > 0.00000001);
+
+#define dt_string_compare(value1, value2, result) \
+	*result = strcmp(*(char**)value1, *(char**)value2) == 0;
+
+// Internal function that checks if two values (fetched from a table)
+// are equal.
+//
+// This is more tricky than it sounds since we could be comparing a
+// uint8_t versus int64_t. Something like memcmp doesn't work for
+// different-sized types.
+//
+// First we make some general type checks about special cases (strings
+// and floats) then proceed to make integer-based comparisons (which are
+// the easiest types to compare).
+//
+// To handle the different types, we use a couple macros defined above.
+static bool
+__two_values_equal(
+	void* value1,
+	enum data_type_e value1_type,
+	void* value2,
+	enum data_type_e value2_type)
+{
+	// if either is a string type, BOTH must be strings.
+	if ((value1_type == STRING && value2_type != STRING)
+		|| (value1_type != STRING && value2_type == STRING))
+		return false;
+	
+	bool is_equal = false;
+
+	// if both are a string, use the string comparison
+	if (value1_type == STRING && value2_type == STRING)
+	{
+		dt_string_compare(value1, value2, &is_equal);
+		return is_equal;
+	}
+
+	// if either is a float, use the float comparison
+	if (value1_type == FLOAT || value2_type == FLOAT)
+	{
+		dt_float_compare(value1, value2, &is_equal);
+		return is_equal;
+	}
+	
+	// if either is a double, use the double comparison
+	if (value1_type == DOUBLE || value2_type == DOUBLE)
+	{
+		dt_double_compare(value1, value2, &is_equal);
+		return is_equal;
+	}
+	
+	// otherwise, we can default to integer comparison
+	// (although, have to do this DISGUSTING switch statement
+	// to handle different combinations of int types)
+	switch (value1_type)
+	{
+		case INT8:
+			switch (value2_type)
+			{
+				case INT8:
+					dt_int_compare(value1, int8_t, value2, int8_t, &is_equal);
+					break;
+				case INT16:
+					dt_int_compare(value1, int8_t, value2, int16_t, &is_equal);
+					break;
+				case INT32:
+					dt_int_compare(value1, int8_t, value2, int32_t, &is_equal);
+					break;
+				case INT64:
+					dt_int_compare(value1, int8_t, value2, int64_t, &is_equal);
+					break;
+				case UINT8:
+					dt_int_compare(value1, int8_t, value2, uint8_t, &is_equal);
+					break;
+				case UINT16:
+					dt_int_compare(value1, int8_t, value2, uint16_t, &is_equal);
+					break;
+				case UINT32:
+					dt_int_compare(value1, int8_t, value2, uint32_t, &is_equal);
+					break;
+				case UINT64:
+					dt_int_compare(value1, int8_t, value2, uint64_t, &is_equal);
+					break;
+				// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+				case FLOAT:
+				case DOUBLE:
+				case STRING:
+					break;
+			}
+			break;
+
+		case INT16:
+			switch (value2_type)
+			{
+				case INT8:
+					dt_int_compare(value1, int16_t, value2, int8_t, &is_equal);
+					break;
+				case INT16:
+					dt_int_compare(value1, int16_t, value2, int16_t, &is_equal);
+					break;
+				case INT32:
+					dt_int_compare(value1, int16_t, value2, int32_t, &is_equal);
+					break;
+				case INT64:
+					dt_int_compare(value1, int16_t, value2, int64_t, &is_equal);
+					break;
+				case UINT8:
+					dt_int_compare(value1, int16_t, value2, uint8_t, &is_equal);
+					break;
+				case UINT16:
+					dt_int_compare(value1, int16_t, value2, uint16_t, &is_equal);
+					break;
+				case UINT32:
+					dt_int_compare(value1, int16_t, value2, uint32_t, &is_equal);
+					break;
+				case UINT64:
+					dt_int_compare(value1, int16_t, value2, uint64_t, &is_equal);
+					break;
+				// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+				case FLOAT:
+				case DOUBLE:
+				case STRING:
+					break;
+			}
+			break;
+
+		case INT32:
+			switch (value2_type)
+			{
+				case INT8:
+					dt_int_compare(value1, int32_t, value2, int8_t, &is_equal);
+					break;
+				case INT16:
+					dt_int_compare(value1, int32_t, value2, int16_t, &is_equal);
+					break;
+				case INT32:
+					dt_int_compare(value1, int32_t, value2, int32_t, &is_equal);
+					break;
+				case INT64:
+					dt_int_compare(value1, int32_t, value2, int64_t, &is_equal);
+					break;
+				case UINT8:
+					dt_int_compare(value1, int32_t, value2, uint8_t, &is_equal);
+					break;
+				case UINT16:
+					dt_int_compare(value1, int32_t, value2, uint16_t, &is_equal);
+					break;
+				case UINT32:
+					dt_int_compare(value1, int32_t, value2, uint32_t, &is_equal);
+					break;
+				case UINT64:
+					dt_int_compare(value1, int32_t, value2, uint64_t, &is_equal);
+					break;
+				// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+				case FLOAT:
+				case DOUBLE:
+				case STRING:
+					break;
+			}
+			break;
+
+		case INT64:
+			switch (value2_type)
+			{
+				case INT8:
+					dt_int_compare(value1, int64_t, value2, int8_t, &is_equal);
+					break;
+				case INT16:
+					dt_int_compare(value1, int64_t, value2, int16_t, &is_equal);
+					break;
+				case INT32:
+					dt_int_compare(value1, int64_t, value2, int32_t, &is_equal);
+					break;
+				case INT64:
+					dt_int_compare(value1, int64_t, value2, int64_t, &is_equal);
+					break;
+				case UINT8:
+					dt_int_compare(value1, int64_t, value2, uint8_t, &is_equal);
+					break;
+				case UINT16:
+					dt_int_compare(value1, int64_t, value2, uint16_t, &is_equal);
+					break;
+				case UINT32:
+					dt_int_compare(value1, int64_t, value2, uint32_t, &is_equal);
+					break;
+				case UINT64:
+					dt_int_compare(value1, int64_t, value2, uint64_t, &is_equal);
+					break;
+				// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+				case FLOAT:
+				case DOUBLE:
+				case STRING:
+					break;
+			}
+			break;
+
+		case UINT8:
+			switch (value2_type)
+			{
+				case INT8:
+					dt_int_compare(value1, uint8_t, value2, int8_t, &is_equal);
+					break;
+				case INT16:
+					dt_int_compare(value1, uint8_t, value2, int16_t, &is_equal);
+					break;
+				case INT32:
+					dt_int_compare(value1, uint8_t, value2, int32_t, &is_equal);
+					break;
+				case INT64:
+					dt_int_compare(value1, uint8_t, value2, int64_t, &is_equal);
+					break;
+				case UINT8:
+					dt_int_compare(value1, uint8_t, value2, uint8_t, &is_equal);
+					break;
+				case UINT16:
+					dt_int_compare(value1, uint8_t, value2, uint16_t, &is_equal);
+					break;
+				case UINT32:
+					dt_int_compare(value1, uint8_t, value2, uint32_t, &is_equal);
+					break;
+				case UINT64:
+					dt_int_compare(value1, uint8_t, value2, uint64_t, &is_equal);
+					break;
+				// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+				case FLOAT:
+				case DOUBLE:
+				case STRING:
+					break;
+			}
+			break;
+
+		case UINT16:
+			switch (value2_type)
+			{
+				case INT8:
+					dt_int_compare(value1, uint16_t, value2, int8_t, &is_equal);
+					break;
+				case INT16:
+					dt_int_compare(value1, uint16_t, value2, int16_t, &is_equal);
+					break;
+				case INT32:
+					dt_int_compare(value1, uint16_t, value2, int32_t, &is_equal);
+					break;
+				case INT64:
+					dt_int_compare(value1, uint16_t, value2, int64_t, &is_equal);
+					break;
+				case UINT8:
+					dt_int_compare(value1, uint16_t, value2, uint8_t, &is_equal);
+					break;
+				case UINT16:
+					dt_int_compare(value1, uint16_t, value2, uint16_t, &is_equal);
+					break;
+				case UINT32:
+					dt_int_compare(value1, uint16_t, value2, uint32_t, &is_equal);
+					break;
+				case UINT64:
+					dt_int_compare(value1, uint16_t, value2, uint64_t, &is_equal);
+					break;
+				// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+				case FLOAT:
+				case DOUBLE:
+				case STRING:
+					break;
+			}
+			break;
+
+		case UINT32:
+			switch (value2_type)
+			{
+				case INT8:
+					dt_int_compare(value1, uint32_t, value2, int8_t, &is_equal);
+					break;
+				case INT16:
+					dt_int_compare(value1, uint32_t, value2, int16_t, &is_equal);
+					break;
+				case INT32:
+					dt_int_compare(value1, uint32_t, value2, int32_t, &is_equal);
+					break;
+				case INT64:
+					dt_int_compare(value1, uint32_t, value2, int64_t, &is_equal);
+					break;
+				case UINT8:
+					dt_int_compare(value1, uint32_t, value2, uint8_t, &is_equal);
+					break;
+				case UINT16:
+					dt_int_compare(value1, uint32_t, value2, uint16_t, &is_equal);
+					break;
+				case UINT32:
+					dt_int_compare(value1, uint32_t, value2, uint32_t, &is_equal);
+					break;
+				case UINT64:
+					dt_int_compare(value1, uint32_t, value2, uint64_t, &is_equal);
+					break;
+				// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+				case FLOAT:
+				case DOUBLE:
+				case STRING:
+					break;
+			}
+			break;
+
+		case UINT64:
+			switch (value2_type)
+			{
+				case INT8:
+					dt_int_compare(value1, uint64_t, value2, int8_t, &is_equal);
+					break;
+				case INT16:
+					dt_int_compare(value1, uint64_t, value2, int16_t, &is_equal);
+					break;
+				case INT32:
+					dt_int_compare(value1, uint64_t, value2, int32_t, &is_equal);
+					break;
+				case INT64:
+					dt_int_compare(value1, uint64_t, value2, int64_t, &is_equal);
+					break;
+				case UINT8:
+					dt_int_compare(value1, uint64_t, value2, uint8_t, &is_equal);
+					break;
+				case UINT16:
+					dt_int_compare(value1, uint64_t, value2, uint16_t, &is_equal);
+					break;
+				case UINT32:
+					dt_int_compare(value1, uint64_t, value2, uint32_t, &is_equal);
+					break;
+				case UINT64:
+					dt_int_compare(value1, uint64_t, value2, uint64_t, &is_equal);
+					break;
+				// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+				case FLOAT:
+				case DOUBLE:
+				case STRING:
+					break;
+			}
+			break;
+		// ignore types (DO NOT use default, it will prevent warnings if we add new types)
+		case FLOAT:
+		case DOUBLE:
+		case STRING:
+			break;
+	}
+
+	return is_equal;
+	
+	// NOTE: eventually we'd need to support custom comparison
+	// when we build in user-defined type support in DataTables.
 }
 
