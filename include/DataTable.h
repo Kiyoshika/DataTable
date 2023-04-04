@@ -41,12 +41,20 @@ dt_table_free(
 	struct DataTable** const table);
 
 // insert a row by passing n_column arguments by pointer (be sure you are using correct types).
-// returns DT_ALLOC_ERROR if there was a problem resizing, DT_SUCCESS otherwise.
+// returns DT_ALLOC_ERROR if there was a problem resizing.
+// returns DT_SUCCESS otherwise.
 enum status_code_e
 dt_table_insert_row(
 	struct DataTable* const table,
 	size_t n_columns,
 	...);
+
+// insert an empty row (typically used internally but exposed to the public)
+// returns DT_ALLOC_ERROR if there was a problem resizing.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
+dt_table_insert_empty_row(
+	struct DataTable* const table);
 
 // set value at specified row/column index.
 void
@@ -198,5 +206,11 @@ dt_table_rows_equal(
 	const size_t row_idx_1,
 	const struct DataTable* table2,
 	const size_t row_idx_2);	
+
+// return a newly-allocated table with all the distinct rows.
+// returns NULL on failure (e.g., out of memory)
+struct DataTable*
+dt_table_distinct(
+	const struct DataTable* table);
 
 #endif
