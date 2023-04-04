@@ -190,4 +190,13 @@ dt_table_append(
 	const size_t n_tables,
 	...);
 
+// check whether or not two rows are equal.
+// more of an internal function but exposing publicly.
+bool
+dt_table_rows_equal(
+	const struct DataTable* table1,
+	const size_t row_idx_1,
+	const struct DataTable* table2,
+	const size_t row_idx_2);	
+
 #endif

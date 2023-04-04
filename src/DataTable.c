@@ -432,3 +432,23 @@ dt_table_append(
 
 	return DT_SUCCESS;
 }
+
+bool
+dt_table_rows_equal(
+	const struct DataTable* table1,
+	const size_t row_idx_1,
+	const struct DataTable* table2,
+	const size_t row_idx_2)
+{
+	// can't be equal if column sizes are different
+	if (table1->n_columns != table2->n_columns)
+		return false;
+
+	for (size_t i = 0; i < table1->n_columns; ++i)
+	{
+		void* value1 = dt_table_get_value(table1, row_idx_1, i);
+		void* value2 = dt_table_get_value(table2, row_idx_2, i);
+
+		// TODO: finish this
+	}
+}	
