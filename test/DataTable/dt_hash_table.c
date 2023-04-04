@@ -22,7 +22,7 @@ int main()
 	set2 = 21.21f;
 	dt_table_insert_row(table, 2, &set1, &set2);
 
-	struct HashTable* htable = hash_create(table);
+	struct HashTable* htable = hash_create(table, true);
 
 	struct DataTable* table2 = dt_table_copy_skeleton(table);
 
@@ -35,10 +35,18 @@ int main()
 	dt_table_insert_row(table2, 2, &set1, &set2);
 
 	// THIS ROW SHOULD NOT BE FOUND IN HASHTABLE
-	
+	if (hash_contains(htable, table2, 0))
+	{
+		fprintf(stderr, "First row of table2 should NOT be in hashmap.\n");
+		goto cleanup;
+	}
 
 	// THIS ROW SHOULD BE FOUND
-	
+	if (!hash_contains(htable, table2, 1))
+	{
+		fprintf(stderr, "Second row of table2 SHOULD be in hashmap but was not found.\n");
+		goto cleanup;
+	}	
 
 	status = 0;
 cleanup:

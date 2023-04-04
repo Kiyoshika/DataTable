@@ -449,6 +449,13 @@ dt_table_rows_equal(
 		void* value1 = dt_table_get_value(table1, row_idx_1, i);
 		void* value2 = dt_table_get_value(table2, row_idx_2, i);
 
-		// TODO: finish this
+		if (!__two_values_equal(
+					value1, 
+					table1->columns[i].column->type,
+					value2,
+					table2->columns[i].column->type))
+			return false;
 	}
+
+	return true;
 }	
