@@ -21,6 +21,22 @@ int main()
 		goto cleanup;
 	}
 
+	// append NULL value
+	dt_column_append_value(column, NULL);
+	
+	dt_column_get_value(column, 6, &get);
+	if (get != 0)
+	{
+		fprintf(stderr, "Was expecting value %d but got %d instead.\n", 0, get);
+		goto cleanup;
+	}
+
+	if (column->n_null_values != 1)
+	{
+		fprintf(stderr, "Was expecting null values to be 1 but god %zu instead.\n", column->n_null_values);
+		goto cleanup;
+	}
+
 	// test appending with empty column
 	struct DataColumn* empty = NULL;
 	dt_column_create(&empty, 0, INT32);

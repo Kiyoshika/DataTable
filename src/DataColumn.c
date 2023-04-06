@@ -72,6 +72,35 @@ get_index_ptr(
 	return ((char*)column->value + index * column->type_size);
 }
 
+static enum status_code_e
+__insert_null_value(
+	struct DataColumn* column,
+	const size_t index)
+{
+	if (!column->null_value_indices)
+	{
+		column->null_value_indices = calloc(1, sizeof(size_t));
+		if (!column->null_value_indices)
+			return DT_ALLOC_ERROR;
+	}
+
+	column->null_value_indices[column->n_null_values++] = index;
+	if (column->n_null_values == column->null_value_capacity)
+	{
+		size_t new_capacity = column->null_value_capacity *= 2;
+		void* alloc = realloc(column->null_value_indices, new_capacity * sizeof(size_t));
+		if (!alloc)
+			return DT_ALLOC_ERROR;
+		column->null_value_indices = alloc;
+		column->null_value_capacity = new_capacity;
+	}
+
+	void* value_at = get_index_ptr((const struct DataColumn* const)column, index);
+	memset(value_at, 0, column->type_size);
+
+	return DT_SUCCESS;
+}
+
 static void
 dt_string_dealloc(
 	void* item)
@@ -109,6 +138,10 @@ dt_column_create(
 	else
 		(*column)->deallocator = NULL;
 
+	(*column)->null_value_indices = NULL;
+	(*column)->n_null_values = 0;
+	(*column)->null_value_capacity = 1;
+
 	return DT_SUCCESS;
 }
 
@@ -125,6 +158,14 @@ dt_column_free(
 
 	(*column)->n_values = 0;
 	(*column)->value_capacity = 0;
+
+	if ((*column)->null_value_indices)
+	{
+		(*column)->n_null_values = 0;
+		(*column)->null_value_capacity = 1;
+		free((*column)->null_value_indices);
+		(*column)->null_value_indices = NULL;
+	}
 
 	free(*column);
 	*column = NULL;
@@ -149,7 +190,12 @@ dt_column_set_value(
 	}
 	
 	if (!value)
+	{
 		memset(value_at, 0, column->type_size);
+		enum status_code_e status = __insert_null_value(column, index);
+		if (status != DT_SUCCESS)
+			return status;
+	}
 	else
 		memcpy(value_at, value, column->type_size);
 
@@ -163,7 +209,12 @@ dt_column_append_value(
 {
 	void* value_at = get_index_ptr(column, column->n_values);
 	if (!value)
+	{
 		memset(value_at, 0, column->type_size);
+		enum status_code_e status = __insert_null_value(column, column->n_values);
+		if (status != DT_SUCCESS)
+			return status;
+	}
 	else
 	{
 		// if column type is heap-allocated, a NEW copy is created

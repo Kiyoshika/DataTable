@@ -33,10 +33,17 @@ struct DataColumn
 {
 	enum data_type_e type;
 	size_t type_size;
+
 	void* value;
+
 	size_t n_values;
 	size_t value_capacity;
+
 	void (*deallocator)(void*);
+
+	size_t* null_value_indices;
+	size_t n_null_values;
+	size_t null_value_capacity;
 };
 
 // pass a NULL-initialized DataTable to allocate [capacity] number of items.
