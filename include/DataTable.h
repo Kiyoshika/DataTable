@@ -213,4 +213,15 @@ struct DataTable*
 dt_table_distinct(
 	const struct DataTable* table);
 
+// insert new column into table.
+// NOTE: the column is COPIED when inserted; ownership is NOT transferred.
+// returns DT_ALLOC_ERROR if failed to resize.
+// returns DT_SiZE_MISMATCH if column's rows do not match table.
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_table_insert_column(
+	struct DataTable* table,
+	const struct DataColumn* const column,
+	const char* const column_name);
+
 #endif

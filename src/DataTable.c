@@ -389,6 +389,8 @@ dt_table_copy(
 		}
 	}
 
+	copy->n_rows = copy->columns[0].column->n_values;
+
 	return copy;
 }
 
@@ -503,4 +505,42 @@ dt_table_distinct(
 
 	hash_free(&htable);
 	return distinct;
+}
+
+enum status_code_e
+dt_table_insert_column(
+	struct DataTable* table,
+	const struct DataColumn* const column,
+	const char* const column_name)
+{
+	if (table->n_rows != column->n_values)
+		return DT_SIZE_MISMATCH;
+
+	struct DataColumn* column_copy = dt_column_copy(column);
+	if (!column_copy)
+		return DT_ALLOC_ERROR;
+
+	void* alloc = realloc(table->columns, sizeof(*table->columns) * table->column_capacity + 1);
+	if (!alloc)
+		return DT_ALLOC_ERROR;
+
+	if (table->n_columns == table->column_capacity)
+	{
+		void* alloc = realloc(table->columns, (table->column_capacity + 1) * sizeof(*table->columns));
+		if (!alloc)
+			return DT_ALLOC_ERROR;
+		table->columns = alloc;
+		table->column_capacity++;
+	}
+
+	struct ColumnPair newpair;
+	memset(newpair.name, 0, MAX_COL_LEN);
+	strncat(newpair.name, column_name, strlen(column_name));
+	newpair.column = column_copy;
+
+	memcpy(&table->columns[table->n_columns++], &newpair, sizeof(struct ColumnPair));
+
+	
+
+	return DT_SUCCESS;
 }
