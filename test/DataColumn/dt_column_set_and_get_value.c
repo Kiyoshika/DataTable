@@ -22,6 +22,23 @@ int main()
 		goto cleanup;
 	}
 
+	// set NULL value
+	dt_column_set_value(column, 1, NULL);
+
+	if (column->n_null_values != 1)
+	{
+		fprintf(stderr, "Was expected null values to be 1 but got %zu instead.\n", column->n_null_values);
+		goto cleanup;
+	}
+
+	dt_column_get_value(column, 1, &get);
+	if (get != 0)
+	{
+		fprintf(stderr, "Was expecting value to be 0 but got %d instead.\n", get);
+		goto cleanup;
+	}
+
+
 	/* attempt to get values outside of range (should be DT_INDEX_ERROR) */
 	enum status_code_e status_code;
 	status_code = dt_column_set_value(column, 5, &set);
