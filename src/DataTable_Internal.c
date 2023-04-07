@@ -553,3 +553,23 @@ __transfer_row(
 	return DT_SUCCESS;
 }
 
+void
+__drop_column(
+	struct DataTable* table,
+	const size_t column_index)
+{
+	if (table->n_columns == 0)
+		return;
+
+	struct DataColumn* column = dt_table_get_column_ptr_by_index(
+			table, 
+			column_index);
+
+	dt_column_free(&column);
+	for (size_t i = column_index; i < table->n_columns - 1; ++i)
+		memcpy(&table->columns[i], &table->columns[i + 1], sizeof(*table->columns));
+	memset(&table->columns[table->n_columns - 1], 0, sizeof(*table->columns));
+
+	if (table->n_columns > 0)
+		table->n_columns--;
+}

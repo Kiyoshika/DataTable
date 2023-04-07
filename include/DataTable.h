@@ -224,4 +224,12 @@ dt_table_insert_column(
 	const struct DataColumn* const column,
 	const char* const column_name);
 
+// take an array of columns and drop them inplace (the column
+// indices will be shifted/adjusted accordingly)
+enum status_code_e
+dt_table_drop_columns(
+	struct DataTable* table,
+	const size_t n_columns,
+	const char (*columns)[MAX_COL_LEN]);
+
 #endif
