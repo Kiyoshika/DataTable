@@ -546,7 +546,7 @@ dt_table_insert_column(
 }
 
 enum status_code_e
-dt_table_drop_columns(
+dt_table_drop_columns_by_name(
 	struct DataTable* table,
 	const size_t n_columns,
 	const char (*column_names)[MAX_COL_LEN])
@@ -556,6 +556,19 @@ dt_table_drop_columns(
 	if (!column_indices)
 		return DT_FAILURE;
 
+	dt_table_drop_columns_by_index(table, n_columns, column_indices);
+
+	free(column_indices);
+	return DT_SUCCESS;
+	
+}
+
+enum status_code_e
+dt_table_drop_columns_by_index(
+	struct DataTable* table,
+	const size_t n_columns,
+	size_t* column_indices)
+{
 	for (size_t i = 0; i < n_columns; ++i)
 		__drop_column(table, i);	
 

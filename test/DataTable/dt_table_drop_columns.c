@@ -24,7 +24,7 @@ int main()
 	dt_table_insert_row(table, 2, NULL, &set2, &set3);
 
 	const char drop_cols[2][MAX_COL_LEN] = { "col1", "col3" };
-	dt_table_drop_columns(table, 2, drop_cols);
+	dt_table_drop_columns_by_name(table, 2, drop_cols);
 
 	if (table->n_columns != 1)
 	{
