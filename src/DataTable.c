@@ -544,3 +544,20 @@ dt_table_insert_column(
 
 	return DT_SUCCESS;
 }
+
+enum status_code_e
+dt_table_drop_columns(
+	struct DataTable* table,
+	const size_t n_columns,
+	const char (*column_names)[MAX_COL_LEN])
+{
+	size_t* column_indices = __get_multiple_column_indices(table, column_names, n_columns);
+
+	if (!column_indices)
+		return DT_FAILURE;
+
+	for (size_t i = 0; i < n_columns; ++i)
+		__drop_column(table, i);	
+
+	return DT_SUCCESS;
+}
