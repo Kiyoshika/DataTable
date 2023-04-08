@@ -240,4 +240,16 @@ dt_table_drop_columns_by_name(
 	const size_t n_columns,
 	const char (*columns)[MAX_COL_LEN]);
 
+// drop any columns containing at least one NULL value in a row.
+// modifies the table inplace
+void
+dt_table_drop_columns_with_null(
+	struct DataTable* table);
+
+// drop any rows containing at least one NULL value in a column
+// modifies the table inplace
+enum status_code_e
+dt_table_drop_rows_with_null(
+	struct DataTable* table);
+
 #endif

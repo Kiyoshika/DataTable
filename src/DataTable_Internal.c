@@ -532,7 +532,7 @@ __two_values_equal(
 // dest table.
 // NOTE: this makes the assumption that number of columns AND column types
 // are the same.
-enum status_code_e
+static enum status_code_e
 __transfer_row(
 	struct DataTable* const dest,
 	const struct DataTable* const src,
@@ -553,7 +553,7 @@ __transfer_row(
 	return DT_SUCCESS;
 }
 
-void
+static void
 __drop_column(
 	struct DataTable* table,
 	const size_t column_index)
@@ -572,4 +572,133 @@ __drop_column(
 
 	if (table->n_columns > 0)
 		table->n_columns--;
+}
+
+static size_t*
+__get_null_column_indices(
+	const struct DataTable* const table,
+	size_t* n_null_columns)
+{
+	bool contains_null = false;
+	
+	// could be wrapped in a struct but not bothering with that right now
+	size_t* null_column_indices = calloc(1, sizeof(size_t));
+	*n_null_columns = 0;
+	size_t null_column_capacity = 1;
+
+	if (!null_column_indices)
+		return NULL;
+
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		if (table->columns[i].column->n_null_values > 0)
+		{
+			contains_null = true;
+			null_column_indices[(*n_null_columns)++] = i;
+			if (*n_null_columns == null_column_capacity)
+			{
+				size_t new_capacity = null_column_capacity *= 2;
+				void* alloc = realloc(null_column_indices, new_capacity * sizeof(size_t));
+				if (!alloc)
+				{
+					free(null_column_indices);
+					return NULL;
+				}
+
+				null_column_indices = alloc;
+				null_column_capacity = new_capacity;
+			}
+		}
+	}
+
+	if (!contains_null)
+	{
+		free(null_column_indices);
+		return NULL;
+	}
+
+	return null_column_indices;
+}
+
+static int
+sizet_compare(
+	const void* a,
+	const void* b)
+{
+	const size_t* _a = a;
+	const size_t* _b = b;
+
+	if (*_a > *_b)
+		return 1;
+	else if (*_a < *_b)
+		return -1;
+
+	return 0;
+}
+
+static size_t*
+__get_distinct_indices(
+	size_t* indices,
+	const size_t n_indices,
+	size_t* n_distinct_indices)
+{
+	qsort(indices, n_indices, sizeof(size_t), &sizet_compare);
+
+	// initially allocate to same size but reallocate to proper size afterwards
+	size_t* distinct_indices = calloc(n_indices, sizeof(size_t));
+	*n_distinct_indices = 0;
+
+	distinct_indices[(*n_distinct_indices)++] = indices[0];
+	for (size_t i = 1; i < n_indices; ++i)
+		if (indices[i] != indices[i - 1])
+			distinct_indices[(*n_distinct_indices)++] = indices[i];
+
+	void* alloc = realloc(distinct_indices, *n_distinct_indices * sizeof(size_t));
+	if (!alloc)
+	{
+		free(distinct_indices);
+		return NULL;
+	}
+	distinct_indices = alloc;
+	return distinct_indices;
+}
+
+static size_t*
+__get_null_row_indices(
+	const struct DataTable* const table,
+	const size_t* const null_column_indices,
+	const size_t n_null_columns,
+	size_t* n_row_indices)
+{
+	// iterate over each null column indices
+	// fetch the array of row indices of null values
+	// merge them all together
+	// sort the array
+	// grab distinct value in new size_t array which is then returned
+	
+	size_t n_candidate_row_indices = 0;
+	for (size_t i = 0; i < n_null_columns; ++i)
+	{
+		size_t column_index = null_column_indices[i];
+		n_candidate_row_indices += table->columns[column_index].column->n_null_values;
+	}
+
+	size_t* candidate_row_indices = calloc(n_candidate_row_indices, sizeof(size_t));
+	if (!candidate_row_indices)
+		return NULL;
+
+	// copy ALL the row indices from every column into one large array
+	size_t current_idx = 0;
+	for (size_t i = 0; i < n_null_columns; ++i)
+	{
+		size_t column_index = null_column_indices[i];
+		struct DataColumn* column = dt_table_get_column_ptr_by_index(table, column_index);
+		for (size_t k = 0; k < column->n_null_values; ++k)
+			candidate_row_indices[current_idx++] = column->null_value_indices[k];
+	}
+
+	size_t* distinct_indices = __get_distinct_indices(candidate_row_indices, n_candidate_row_indices, n_row_indices);
+
+	free(candidate_row_indices);
+	return distinct_indices;
 }

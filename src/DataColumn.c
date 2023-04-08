@@ -386,6 +386,22 @@ dt_column_copy(
 			memcpy(dest, source, column->type_size);
 	}
 
+	// copy null values (if any)
+	if (column->n_null_values > 0)
+	{
+		copy_column->n_null_values = column->n_null_values;
+		copy_column->null_value_capacity = column->n_null_values + 1;
+		copy_column->null_value_indices = calloc(column->n_null_values + 1, sizeof(size_t));
+		if (!copy_column->null_value_indices)
+		{
+			dt_column_free(&copy_column);
+			return NULL;
+		}
+
+		for (size_t i = 0; i < column->n_null_values; ++i)
+			copy_column->null_value_indices[i] = column->null_value_indices[i];
+	}
+
 	return copy_column;
 }
 
@@ -465,6 +481,53 @@ dt_column_subset_by_index(
 bad_index:
 	dt_column_free(&subset);
 	return NULL;
+}
+
+static int
+sizet_compare(
+	const void* a,
+	const void* b)
+{
+	const size_t* _a = a;
+	const size_t* _b = b;
+
+	if (*_a > *_b)
+		return 1;
+	else if (*_a < *_b)
+		return -1;
+
+	return 0;
+}
+
+struct DataColumn*
+dt_column_drop_by_index(
+	const struct DataColumn* const column,
+	const size_t* const sorted_indices_ascending,
+	const size_t n_indices)
+{
+	if (n_indices == 0)
+		return NULL;
+
+	// cannot drop more indices than possible values
+	if (n_indices > column->n_values)
+		return NULL;
+
+	struct DataColumn* subset = NULL;
+	dt_column_create(&subset, column->n_values - n_indices, column->type);
+
+	size_t current_idx = 0;
+	for (size_t i = 0; i < column->n_values; ++i)
+	{
+		// if index is NOT found, then we can copy the value
+		if (!bsearch(&i, sorted_indices_ascending, n_indices, sizeof(size_t), &sizet_compare))
+		{
+			void* source = get_index_ptr(column, i);
+			void* dest = get_index_ptr(subset, current_idx++);
+			memcpy(dest, source, column->type_size);
+		}
+	}
+
+	return subset;
 }
 
 enum status_code_e

@@ -574,3 +574,42 @@ dt_table_drop_columns_by_index(
 
 	return DT_SUCCESS;
 }
+
+void
+dt_table_drop_columns_with_null(
+	struct DataTable* table)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+		if (table->columns[i].column->n_null_values > 0)
+			__drop_column(table, i);
+}
+
+enum status_code_e
+dt_table_drop_rows_with_null(
+	struct DataTable* table)
+{
+	size_t n_null_columns = 0;
+	size_t* null_column_indices = __get_null_column_indices(table, &n_null_columns);	
+	if (!null_column_indices)
+		return DT_FAILURE;
+
+	size_t n_row_indices = 0;
+	size_t* null_row_indices = __get_null_row_indices(table, null_column_indices, n_null_columns, &n_row_indices);
+
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		struct DataColumn* subset = dt_column_drop_by_index(
+				table->columns[i].column,
+				null_row_indices,
+				n_row_indices);
+		dt_column_free(&table->columns[i].column);
+		table->columns[i].column = subset;
+	}
+
+	free(null_row_indices);
+	free(null_column_indices);
+
+	table->n_rows = table->columns[0].column->n_values;
+
+	return DT_SUCCESS;
+}
