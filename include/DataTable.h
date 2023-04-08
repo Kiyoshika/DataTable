@@ -252,4 +252,23 @@ enum status_code_e
 dt_table_drop_rows_with_null(
 	struct DataTable* table);
 
+// apply a user-defined callback function on column [column_name].
+// optionally pass custom [user_data] and/or reference columns within the table with [column_value_names].
+// when using [column_value_names], each column provided (in order) will correspond to a column_value[i].
+// i.e., if passing { "col1", "col3" } in [column_value_names] then column_value[0] --> col1 and column_value[1] --> col3
+//
+// NOTE: cannot apply function if column contains any NULL values
+//
+// returns DT_ALLOC_ERROR if there was a problem allocating memory
+// returns DT_FAILURE for other general errors
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_table_apply_column(
+	struct DataTable* const table,
+	const char* const column_name,
+	void (*callback)(void* current_row_value, void* user_data, const void** const column_values),
+	void* user_data,
+	const char (*column_value_names)[MAX_COL_LEN],
+	const size_t n_column_values);
+
 #endif

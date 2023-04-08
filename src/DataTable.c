@@ -613,3 +613,66 @@ dt_table_drop_rows_with_null(
 
 	return DT_SUCCESS;
 }
+
+enum status_code_e
+dt_table_apply_column(
+	struct DataTable* const table,
+	const char* const column_name,
+	void (*callback)(void* current_row_value, void* user_data, const void** const column_values),
+	void* user_data,
+	const char (*column_value_names)[MAX_COL_LEN],
+	const size_t n_column_values)
+{
+	
+	bool is_error = false;
+	size_t apply_column_index = __get_column_index(table, column_name, &is_error);
+
+	// do nothing if column is not found
+	if (is_error)
+		return DT_FAILURE;
+
+	// cannot apply function if column contains any NULL values
+	// (this is because it's too annoying to check if any NULL values would be changed
+	// after applying the callback, but could be updated later if there's demand for it.)
+	if (table->columns[apply_column_index].column->n_null_values > 0)
+		return DT_FAILURE;
+
+	// create array of pointers to each column
+	void** column_values = NULL;
+	if (n_column_values > 0)
+		column_values = malloc(sizeof(void*) * n_column_values);
+
+	if (!column_values)
+		return DT_ALLOC_ERROR;
+
+	size_t* column_value_indices = __get_multiple_column_indices(table, column_value_names, n_column_values);
+
+	if (!column_value_indices)
+	{
+		free(column_values);
+		return DT_FAILURE;
+	}
+
+	// iterate each row and call user-defined callback
+	for (size_t i = 0; i < table->n_rows; ++i)
+	{
+		// assign pointers to column values on current row (if specified)
+		if (column_value_names)
+		{
+			for (size_t k = 0; k < n_column_values; ++k)
+			{
+				size_t column_index = column_value_indices[k];
+				void* value = dt_table_get_value(table, i, column_index);
+				column_values[k] = value;
+			}
+		}
+
+		void* current_row_value = dt_table_get_value(table, i, apply_column_index);
+		callback(current_row_value, user_data, (const void** const)column_values);
+	}
+
+	free(column_value_indices);
+	free(column_values);
+
+	return DT_SUCCESS;
+}

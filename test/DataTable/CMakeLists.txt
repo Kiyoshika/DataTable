@@ -72,3 +72,8 @@ add_executable(dt_table_drop_null dt_table_drop_null.c)
 target_include_directories(dt_table_drop_null PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_drop_null datatable)
 add_test(NAME dt_table_drop_null COMMAND dt_table_drop_null)
+
+add_executable(dt_table_apply_column dt_table_apply_column.c)
+target_include_directories(dt_table_apply_column PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_apply_column datatable)
+add_test(NAME dt_table_apply_column COMMAND dt_table_apply_column)
