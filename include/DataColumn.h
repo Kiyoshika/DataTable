@@ -155,6 +155,15 @@ dt_column_subset_by_index(
 	const size_t* const indices,
 	const size_t n_indices);
 
+// drop all rows containing index (opposite of dt_column_subset_by_index)
+// NOTE: this expects the indices to be PRE-SORTED ASCENDING using qsort()
+// returns NULL on failure (e.g., if one of the indices is out of bounds)
+struct DataColumn*
+dt_column_drop_by_index(
+	const struct DataColumn* const column,
+	const size_t* const sorted_indices_ascending,
+	const size_t n_indices);
+
 // resize a column to new size with n_values.
 // returns DT_ALLOC_ERROR if reallocation fails, DT_SUCCESS otherwise.
 // if new size is bigger, values are defaulted to 0.
