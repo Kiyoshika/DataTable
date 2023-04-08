@@ -38,6 +38,21 @@ int main()
 		goto cleanup;
 	}
 
+	// overwrite NULL value
+	dt_column_set_value(column, 1, &set);
+
+	if (column->n_null_values != 0)
+	{
+		fprintf(stderr, "Was expecting no null values but have %zu.\n", column->n_null_values);
+		goto cleanup;
+	}
+
+	dt_column_get_value(column, 1, &get);
+	if (get != 25)
+	{
+		fprintf(stderr, "Was expecting value to be 25 but got %d instead.\n", get);
+		goto cleanup;
+	}
 
 	/* attempt to get values outside of range (should be DT_INDEX_ERROR) */
 	enum status_code_e status_code;
