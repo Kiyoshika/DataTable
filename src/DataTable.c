@@ -627,12 +627,6 @@ dt_table_apply_column(
 	if (is_error)
 		return DT_FAILURE;
 
-	// cannot apply function if column contains any NULL values
-	// (this is because it's too annoying to check if any NULL values would be changed
-	// after applying the callback, but could be updated later if there's demand for it.)
-	if (table->columns[apply_column_index].column->n_null_values > 0)
-		return DT_FAILURE;
-
 	// create array of pointers to each column
 	void** column_values = NULL;
 	if (n_column_values > 0)
@@ -669,6 +663,11 @@ dt_table_apply_column(
 
 	free(column_value_indices);
 	free(column_values);
+
+	// clear any null values after applying function
+	struct DataColumn* column = dt_table_get_column_ptr_by_index(table, apply_column_index);
+	memset(column->null_value_indices, 0, column->n_null_values * sizeof(size_t));
+	column->n_null_values = 0;
 
 	return DT_SUCCESS;
 }

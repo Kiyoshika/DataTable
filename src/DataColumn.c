@@ -79,6 +79,8 @@ __insert_null_value(
 {
 	if (!column->null_value_indices)
 	{
+		column->n_null_values = 0;
+		column->null_value_capacity = 1;
 		column->null_value_indices = calloc(1, sizeof(size_t));
 		if (!column->null_value_indices)
 			return DT_ALLOC_ERROR;
