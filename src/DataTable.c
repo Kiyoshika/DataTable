@@ -520,10 +520,6 @@ dt_table_insert_column(
 	if (!column_copy)
 		return DT_ALLOC_ERROR;
 
-	void* alloc = realloc(table->columns, sizeof(*table->columns) * table->column_capacity + 1);
-	if (!alloc)
-		return DT_ALLOC_ERROR;
-
 	if (table->n_columns == table->column_capacity)
 	{
 		void* alloc = realloc(table->columns, (table->column_capacity + 1) * sizeof(*table->columns));
