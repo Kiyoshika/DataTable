@@ -271,4 +271,16 @@ dt_table_apply_column(
 	const char (*column_value_names)[MAX_COL_LEN],
 	const size_t n_column_values);
 
+void
+dt_table_fill_column_values_by_name(
+	struct DataTable* table,
+	const char* const column_name,
+	const void* const value);
+
+void
+dt_table_fill_column_values_by_index(
+	struct DataTable* table,
+	const size_t column_index,
+	const void* const value);
+
 #endif
