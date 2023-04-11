@@ -674,6 +674,22 @@ dt_table_apply_column(
 }
 
 void
+dt_table_apply_all(
+	struct DataTable* const table,
+	void (*callback)(void* current_cell_value, void* user_data),
+	void* user_data)
+{
+	for (size_t c = 0; c < table->n_columns; ++c)
+	{
+		for (size_t r = 0; r < table->n_rows; ++r)
+		{
+			void* value = dt_table_get_value(table, r, c);
+			callback(value, user_data);
+		}
+	}
+}
+
+void
 dt_table_fill_column_values_by_index(
 	struct DataTable* table,
 	const size_t column_index,

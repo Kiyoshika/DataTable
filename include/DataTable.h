@@ -271,6 +271,14 @@ dt_table_apply_column(
 	const char (*column_value_names)[MAX_COL_LEN],
 	const size_t n_column_values);
 
+// apply a user-defined callback function on ALL cells within a table.
+// optionally pass custom [user_data].
+void
+dt_table_apply_all(
+	struct DataTable* const table,
+	void (*callback)(void* current_cell_value, void* user_data),
+	void* user_data);
+
 // fill column's values by name.
 // does nothing if column is not found.
 void
