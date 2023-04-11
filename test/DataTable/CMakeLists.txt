@@ -82,3 +82,8 @@ add_executable(dt_table_fill_column dt_table_fill_column.c)
 target_include_directories(dt_table_fill_column PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_fill_column datatable)
 add_test(NAME dt_table_fill_column COMMAND dt_table_fill_column)
+
+add_executable(dt_table_apply_all dt_table_apply_all.c)
+target_include_directories(dt_table_apply_all PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_apply_all datatable)
+add_test(NAME dt_table_apply_all COMMAND dt_table_apply_all)
