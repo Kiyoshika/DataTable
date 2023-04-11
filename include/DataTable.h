@@ -271,4 +271,26 @@ dt_table_apply_column(
 	const char (*column_value_names)[MAX_COL_LEN],
 	const size_t n_column_values);
 
+// fill column's values by name.
+// does nothing if column is not found.
+void
+dt_table_fill_column_values_by_name(
+	struct DataTable* table,
+	const char* const column_name,
+	const void* const value);
+
+// fill columns' values by index
+// does nothing if index is out of bounds.
+void
+dt_table_fill_column_values_by_index(
+	struct DataTable* table,
+	const size_t column_index,
+	const void* const value);
+
+// fill entire table with a value.
+void
+dt_table_fill_all_values(
+	struct DataTable* table,
+	const void* const value);
+
 #endif

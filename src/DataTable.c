@@ -672,3 +672,38 @@ dt_table_apply_column(
 
 	return DT_SUCCESS;
 }
+
+void
+dt_table_fill_column_values_by_index(
+	struct DataTable* table,
+	const size_t column_index,
+	const void* const value)
+{
+	if (column_index >= table->n_columns)
+		return;
+
+	struct DataColumn* column = dt_table_get_column_ptr_by_index(table, column_index);
+	dt_column_fill_values(column, value);
+}
+
+void
+dt_table_fill_column_values_by_name(
+	struct DataTable* table,
+	const char* const column_name,
+	const void* const value)
+{
+	bool is_error = false;
+	size_t column_index = __get_column_index(table, column_name, &is_error);
+	if (is_error)
+		return;
+	dt_table_fill_column_values_by_index(table, column_index, value);
+}
+
+void
+dt_table_fill_all_values(
+	struct DataTable* table,
+	const void* const value)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+		dt_table_fill_column_values_by_index(table, i, value);
+}
