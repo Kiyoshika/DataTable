@@ -8,7 +8,8 @@ enum status_code_e
 	DT_INDEX_ERROR = -2,
 	DT_TYPE_MISMATCH = -3,
 	DT_SIZE_MISMATCH = -4,
-	DT_FAILURE = -5
+	DT_FAILURE = -5,
+	DT_COLUMN_NOT_FOUND = -6
 };
 
 #endif

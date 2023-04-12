@@ -280,25 +280,51 @@ dt_table_apply_all(
 	void* user_data);
 
 // fill column's values by name.
-// does nothing if column is not found.
-void
+// returns DT_COLUMN_NOT_FOUND if column isn't found.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
 dt_table_fill_column_values_by_name(
-	struct DataTable* table,
+	struct DataTable* const table,
 	const char* const column_name,
 	const void* const value);
 
 // fill columns' values by index
-// does nothing if index is out of bounds.
-void
+// returns DT_INDEX_ERROR if index is out of bounds.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
 dt_table_fill_column_values_by_index(
-	struct DataTable* table,
+	struct DataTable* const table,
 	const size_t column_index,
 	const void* const value);
 
 // fill entire table with a value.
 void
 dt_table_fill_all_values(
-	struct DataTable* table,
+	struct DataTable* const table,
+	const void* const value);
+
+// replace NULL values in a specified column with the given value.
+// returns DT_COLUMN_NOT_FOUND if column is not found.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
+dt_table_replace_column_null_values_by_name(
+	struct DataTable* const table,
+	const char* const column_name,
+	const void* const value);
+
+// replace NULL values in a specified column with the given value.
+// returns DT_INDEX_ERROR if index is out of bounds.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
+dt_table_replace_column_null_values_by_index(
+	struct DataTable* const table,
+	const size_t column_index,
+	const void* const value);
+
+// replace ALL NULL values in entire table with the given value.
+void
+dt_table_replace_all_null_values(
+	struct DataTable* const table,
 	const void* const value);
 
 #endif

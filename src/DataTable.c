@@ -688,20 +688,22 @@ dt_table_apply_all(
 	}
 }
 
-void
+enum status_code_e
 dt_table_fill_column_values_by_index(
 	struct DataTable* table,
 	const size_t column_index,
 	const void* const value)
 {
 	if (column_index >= table->n_columns)
-		return;
+		return DT_INDEX_ERROR;
 
 	struct DataColumn* column = dt_table_get_column_ptr_by_index(table, column_index);
 	dt_column_fill_values(column, value);
+
+	return DT_SUCCESS;
 }
 
-void
+enum status_code_e
 dt_table_fill_column_values_by_name(
 	struct DataTable* table,
 	const char* const column_name,
@@ -709,9 +711,11 @@ dt_table_fill_column_values_by_name(
 {
 	bool is_error = false;
 	size_t column_index = __get_column_index(table, column_name, &is_error);
+
 	if (is_error)
-		return;
-	dt_table_fill_column_values_by_index(table, column_index, value);
+		return DT_COLUMN_NOT_FOUND;
+
+	return dt_table_fill_column_values_by_index(table, column_index, value);
 }
 
 void
@@ -721,4 +725,49 @@ dt_table_fill_all_values(
 {
 	for (size_t i = 0; i < table->n_columns; ++i)
 		dt_table_fill_column_values_by_index(table, i, value);
+}
+
+enum status_code_e
+dt_table_replace_column_null_values_by_index(
+	struct DataTable* const table,
+	const size_t column_index,
+	const void* const value)
+{
+	if (column_index >= table->n_columns)
+		return DT_INDEX_ERROR;
+
+	struct DataColumn* column = dt_table_get_column_ptr_by_index(table, column_index);
+
+	for (size_t null_idx = 0; null_idx < column->n_null_values; ++null_idx)
+		dt_column_set_value(column, column->null_value_indices[null_idx], value);
+
+	// clear all null values
+	memset(column->null_value_indices, 0, column->n_null_values * sizeof(size_t));
+	column->n_null_values = 0;
+
+	return DT_SUCCESS;
+}
+
+enum status_code_e
+dt_table_replace_column_null_values_by_name(
+	struct DataTable* const table,
+	const char* const column_name,
+	const void* const value)
+{
+	bool is_error = false;
+	size_t column_index = __get_column_index(table, column_name, &is_error);
+
+	if (is_error)
+		return DT_COLUMN_NOT_FOUND;
+
+	return dt_table_replace_column_null_values_by_index(table, column_index, value);
+}
+
+void
+dt_table_replace_all_null_values(
+	struct DataTable* const table,
+	const void* const value)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+		dt_table_replace_column_null_values_by_index(table, i, value);
 }
