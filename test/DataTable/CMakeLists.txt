@@ -87,3 +87,9 @@ add_executable(dt_table_apply_all dt_table_apply_all.c)
 target_include_directories(dt_table_apply_all PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_apply_all datatable)
 add_test(NAME dt_table_apply_all COMMAND dt_table_apply_all)
+
+
+add_executable(dt_table_replace_null dt_table_replace_null.c)
+target_include_directories(dt_table_replace_null PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_replace_null datatable)
+add_test(NAME dt_table_replace_null COMMAND dt_table_replace_null)
