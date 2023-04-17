@@ -95,7 +95,7 @@ dt_table_set_value(
 	dt_column_set_value(table->columns[column].column, row, value);
 }
 
-void*
+const void*
 dt_table_get_value(
 	const struct DataTable* const table,
 	const size_t row,
@@ -449,8 +449,8 @@ dt_table_rows_equal(
 
 	for (size_t i = 0; i < table1->n_columns; ++i)
 	{
-		void* value1 = dt_table_get_value(table1, row_idx_1, i);
-		void* value2 = dt_table_get_value(table2, row_idx_2, i);
+		const void* value1 = dt_table_get_value(table1, row_idx_1, i);
+		const void* value2 = dt_table_get_value(table2, row_idx_2, i);
 
 		if (!__two_values_equal(
 					value1, 
@@ -652,12 +652,18 @@ dt_table_apply_column(
 			for (size_t k = 0; k < n_column_values; ++k)
 			{
 				size_t column_index = column_value_indices[k];
-				void* value = dt_table_get_value(table, i, column_index);
-				column_values[k] = value;
+				const void* value = dt_table_get_value(table, i, column_index);
+				// the cast is to disable const warning; the value won't actually change
+				column_values[k] = (void*)value; 
 			}
 		}
 
-		void* current_row_value = dt_table_get_value(table, i, apply_column_index);
+		// cast to remove const-ness (this value WILL change in the callback)
+		// NOTE: it's NOT advised to do this in general since changing the
+		// pointer directly WILL NOT update NULL value counts. Here we
+		// are doing it because we clear all NULL values at the end of
+		// the function.
+		void* current_row_value = (void*)dt_table_get_value(table, i, apply_column_index);
 		callback(current_row_value, user_data, (const void** const)column_values);
 	}
 
@@ -682,10 +688,20 @@ dt_table_apply_all(
 	{
 		for (size_t r = 0; r < table->n_rows; ++r)
 		{
-			void* value = dt_table_get_value(table, r, c);
+			void* value = (void*)dt_table_get_value(table, r, c);
 			callback(value, user_data);
 		}
 	}
+
+	// reset all NULL value counts in each column
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		struct DataColumn* column = dt_table_get_column_ptr_by_index(table, i);
+		memset(column->null_value_indices, 0, column->n_null_values * sizeof(size_t));
+		column->n_null_values = 0;
+	}
+	
+
 }
 
 enum status_code_e

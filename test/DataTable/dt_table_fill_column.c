@@ -18,7 +18,7 @@ int main()
 	dt_table_fill_column_values_by_index(table, 0, &fill);
 	for (size_t i = 0; i < 5; ++i)
 	{
-		int32_t* get = dt_table_get_value(table, i, 0);
+		const int32_t* get = dt_table_get_value(table, i, 0);
 		if (*get != 10)
 		{
 			fprintf(stderr, "Expected value 10 but got %d.\n", *get);
@@ -31,7 +31,7 @@ int main()
 	dt_table_fill_column_values_by_name(table, "col1", &fill);
 	for (size_t i = 0; i < 5; ++i)
 	{
-		int32_t* get = dt_table_get_value(table, i, 0);
+		const int32_t* get = dt_table_get_value(table, i, 0);
 		if (*get != 20)
 		{
 			fprintf(stderr, "Expected value 20 but got %d.\n", *get);

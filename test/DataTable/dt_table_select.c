@@ -42,7 +42,7 @@ int main()
 		goto cleanup;
 	}
 
-	int32_t* get = dt_table_get_value(subset, 0, 0);
+	const int32_t* get = dt_table_get_value(subset, 0, 0);
 	if (*get != 10)
 	{
 		fprintf(stderr, "Expected first value in subset to be 10 but got %d.\n", *get);

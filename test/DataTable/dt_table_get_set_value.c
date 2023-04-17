@@ -17,7 +17,7 @@ int main()
 	set1 = 30;
 	dt_table_set_value(table, 0, 1, &set1);
 
-	int32_t* get = dt_table_get_value(table, 0, 1);
+	const int32_t* get = dt_table_get_value(table, 0, 1);
 	if (*get != 30)
 	{
 		fprintf(stderr, "Expected value to be 30 but got %d.\n", *get);

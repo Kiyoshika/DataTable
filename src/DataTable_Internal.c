@@ -198,9 +198,9 @@ __filter_multiple(
 // To handle the different types, we use a couple macros defined above.
 static bool
 __two_values_equal(
-	void* value1,
+	const void* value1,
 	enum data_type_e value1_type,
-	void* value2,
+	const void* value2,
 	enum data_type_e value2_type)
 {
 	// if either is a string type, BOTH must be strings.
@@ -544,7 +544,7 @@ __transfer_row(
 
 	for (size_t i = 0; i < dest->n_columns; ++i)
 	{
-		void* value = dt_table_get_value(src, src_row_idx, i);
+		const void* value = dt_table_get_value(src, src_row_idx, i);
 		// be careful with unsigned subtraction...
 		size_t dest_row = dest->n_rows == 0 ? 0 : dest->n_rows - 1;
 		dt_table_set_value(dest, dest_row, i, value);

@@ -40,7 +40,7 @@ int main()
 	{
 		for (size_t r = 0; r < table->n_rows; ++r)
 		{
-			int32_t* get = dt_table_get_value(table, r, c);
+			const int32_t* get = dt_table_get_value(table, r, c);
 			if (*get != 20)
 			{
 				fprintf(stderr, "Expected value to be 20 but got %d.\n", *get);
