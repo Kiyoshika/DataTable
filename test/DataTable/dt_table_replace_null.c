@@ -38,7 +38,7 @@ int main()
 
 	}
 
-	int32_t* get = dt_table_get_value(table, 0, 1);
+	const int32_t* get = dt_table_get_value(table, 0, 1);
 	if (*get != 55)
 	{
 		fprintf(stderr, "Expected replaced value to be 55 but got %d.\n", *get);

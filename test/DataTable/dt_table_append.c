@@ -46,7 +46,7 @@ int main()
 	}
 
 	// VALIDATE COL1
-	int32_t* get;
+	const int32_t* get;
 	if ((get = dt_table_get_value(table, 0, 0)) && *get != 10)
 	{
 		fprintf(stderr, "Expected value at (0, 0) to be 10 but got %d.\n", *get);
@@ -84,7 +84,7 @@ int main()
 	}
 
 	// VALIDATE COL2
-	float* get2;
+	const float* get2;
 	if ((get2 = dt_table_get_value(table, 0, 1)) && fabsf(*get2 - 5.5f) > 0.0001f)
 	{
 		fprintf(stderr, "Expected value at (0, 1) to be 5.5 but got %f.\n", *get2);

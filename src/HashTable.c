@@ -15,7 +15,7 @@ hash_function(
 
 	for (size_t i = 0; i < table->n_columns; ++i)
 	{
-		void* value = dt_table_get_value(table, row_idx, i);
+		const void* value = dt_table_get_value(table, row_idx, i);
 
 		switch (table->columns[i].column->type)
 		{

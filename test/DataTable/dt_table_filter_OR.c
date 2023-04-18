@@ -53,7 +53,7 @@ int main()
 		goto cleanup;
 	}
 
-	int32_t* get_int = dt_table_get_value(filtered, 0, 0);
+	const int32_t* get_int = dt_table_get_value(filtered, 0, 0);
 	if (*get_int != 20)
 	{
 		fprintf(stderr, "Expected value at (0, 0) in filtered to be 20 but got %d.\n", *get_int);
@@ -67,7 +67,7 @@ int main()
 		goto cleanup;
 	}
 
-	float* get_float = dt_table_get_value(filtered, 0, 1);
+	const float* get_float = dt_table_get_value(filtered, 0, 1);
 	if (fabsf(*get_float - 12.52f) > 0.0001f)
 	{
 		fprintf(stderr, "Expected value at (0, 1) in filtered to be 12.52 but got %f.\n", *get_float);

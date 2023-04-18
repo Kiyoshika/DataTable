@@ -65,7 +65,7 @@ dt_table_set_value(
 	const void* const value);
 
 // get value at specified row/column index as a pointer
-void*
+const void*
 dt_table_get_value(
 	const struct DataTable* const table,
 	const size_t row,

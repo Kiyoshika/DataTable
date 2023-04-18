@@ -47,7 +47,7 @@ int main()
 	const char column_value_names[2][MAX_COL_LEN] = { "col1", "col2" };
 	dt_table_apply_column(table, "col3", &add_columns, NULL, column_value_names, 2);
 
-	int32_t* get = NULL;
+	const int32_t* get = NULL;
 	get = dt_table_get_value(table, 0, 2);
 	if (*get != 22)
 	{
