@@ -327,4 +327,14 @@ dt_table_replace_all_null_values(
 	struct DataTable* const table,
 	const void* const value);
 
+// sample rows from a data table with or without replacement.
+// if NOT sampling with replacement, then n_samples must be <= n_rows.
+// returns a newly-allocated data table containing the sampled rows.
+// returns NULL on failure (e.g., memory allocation or invalid size)
+struct DataTable*
+dt_table_sample_rows(
+	const struct DataTable* const table,
+	const size_t n_samples,
+	const bool with_replacement);
+
 #endif

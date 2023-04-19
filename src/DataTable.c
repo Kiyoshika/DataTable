@@ -787,3 +787,19 @@ dt_table_replace_all_null_values(
 	for (size_t i = 0; i < table->n_columns; ++i)
 		dt_table_replace_column_null_values_by_index(table, i, value);
 }
+
+struct DataTable*
+dt_table_sample_rows(
+	const struct DataTable* const table,
+	const size_t n_samples,
+	const bool with_replacement)
+{
+	if (with_replacement)
+		return __sample_with_replacement(table, n_samples);
+
+	// can't draw samples larger than the table without replacement
+	if (!with_replacement && n_samples > table->n_rows)
+		return NULL;
+
+	return __sample_without_replacement(table, n_samples);
+}

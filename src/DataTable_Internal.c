@@ -5,6 +5,7 @@
  * through hundreds of lines of code
  */
 #include <math.h>
+#include <time.h>
 
 
 // get the column index for a specific column name.
@@ -701,4 +702,47 @@ __get_null_row_indices(
 
 	free(candidate_row_indices);
 	return distinct_indices;
+}
+
+// utility function to get a random size_t in a range.
+// this uses a "modified" version of RAND_MAX to support the upper bound
+// of an unsigned 64-bit integer (2^64 - 1).
+// this assumes srand(time(NULL)) has been called before generating these ints.
+static uint64_t
+__get_random_index(uint64_t lower_bound, uint64_t upper_bound)
+{
+	uint64_t randmax = RAND_MAX;
+	uint64_t new_randmax = (randmax << (64 - 15)) | (randmax << (64 - 30)) | (randmax << (64 - 45)) | randmax;
+	return (new_randmax % (upper_bound - lower_bound + 1)) + lower_bound;
+}
+
+static struct DataTable*
+__sample_with_replacement(
+	const struct DataTable* const table,
+	const size_t n_samples)
+{
+	// create new data table with size of n_samples
+	struct DataTable* samples = dt_table_copy_skeleton(table);
+	if (!samples)
+		return NULL;
+	
+	// generate n_samples of random indices from original table and 
+	// transfer rows over
+	srand(time(NULL)); // set seed
+	for (size_t i = 0; i < n_samples; ++i)
+	{
+		size_t random_idx = (size_t)__get_random_index(0, table->n_rows);
+		__transfer_row(samples, table, random_idx);
+	}
+
+	return samples;
+}
+
+static struct DataTable*
+__sample_without_replacement(
+	const struct DataTable* const table,
+	const size_t n_samples)
+{
+	// TODO: finish this - create a size_t hashmap for quick lookups
+	return NULL;
 }
