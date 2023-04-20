@@ -25,6 +25,8 @@ struct HashTable
 	// this does NOT get free'd
 	struct DataTable* table;
 
+	bool is_empty;
+
 	struct Bin* bin;
 	size_t n_bins;
 };
