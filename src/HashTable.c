@@ -98,6 +98,7 @@ hash_insert(
 		bin->capacity++;
 		memset(&bin->value[bin->n_values], 0, sizeof(size_t));
 	}
+	htable->is_empty = false;
 	return DT_SUCCESS;
 }
 
@@ -151,7 +152,11 @@ hash_create(
 				return NULL;
 			}
 		}
+
+		htable->is_empty = false;
 	}
+	else
+		htable->is_empty = true;
 
 	return htable;
 }	
@@ -162,6 +167,9 @@ hash_contains(
 	const struct DataTable* const table,
 	const size_t row_idx)
 {
+	if (htable->is_empty)
+		return false;
+
 	size_t hash_idx = hash_function(htable, table, row_idx);
 	struct Bin* bin = &htable->bin[hash_idx];
 	

@@ -711,8 +711,7 @@ __get_null_row_indices(
 static uint64_t
 __get_random_index(uint64_t lower_bound, uint64_t upper_bound)
 {
-	uint64_t randmax = RAND_MAX;
-	uint64_t new_randmax = (randmax << (64 - 15)) | (randmax << (64 - 30)) | (randmax << (64 - 45)) | randmax;
+	uint64_t new_randmax = ((uint64_t)rand() << (64 - 15)) | ((uint64_t)rand() << (64 - 30)) | ((uint64_t)rand() << (64 - 45)) | (uint64_t)rand();
 	return (new_randmax % (upper_bound - lower_bound + 1)) + lower_bound;
 }
 
@@ -721,6 +720,10 @@ __sample_with_replacement(
 	const struct DataTable* const table,
 	const size_t n_samples)
 {
+	// nothing to sample
+	if (table->n_rows == 0)
+		return NULL;
+
 	// create new data table with size of n_samples
 	struct DataTable* samples = dt_table_copy_skeleton(table);
 	if (!samples)
@@ -731,7 +734,7 @@ __sample_with_replacement(
 	srand(time(NULL)); // set seed
 	for (size_t i = 0; i < n_samples; ++i)
 	{
-		size_t random_idx = (size_t)__get_random_index(0, table->n_rows);
+		size_t random_idx = (size_t)__get_random_index(0, table->n_rows - 1);
 		__transfer_row(samples, table, random_idx);
 	}
 
@@ -743,6 +746,33 @@ __sample_without_replacement(
 	const struct DataTable* const table,
 	const size_t n_samples)
 {
-	// TODO: finish this - create a size_t hashmap for quick lookups
-	return NULL;
+	// nothing to sample
+	if (table->n_rows == 0)
+		return NULL;
+
+	// create empty hashtable with current table as a reference
+	struct HashTable* htable = hash_create(table, false);
+	if (!htable)
+		return NULL;
+
+	// create new data table with size of n_samples
+	struct DataTable* samples = dt_table_copy_skeleton(table);
+	if (!samples)
+		return NULL;
+
+	size_t sampled_rows = 0;
+	while (sampled_rows < n_samples)
+	{
+		size_t random_idx = (size_t)__get_random_index(0, table->n_rows);
+		if (!hash_contains(htable, table, random_idx))
+		{
+			__transfer_row(samples, table, random_idx);
+			hash_insert(htable, random_idx);
+			sampled_rows++;
+		}
+	}
+
+	hash_free(&htable);
+
+	return samples;
 }

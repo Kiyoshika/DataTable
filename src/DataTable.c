@@ -55,6 +55,10 @@ void
 dt_table_free(
 	struct DataTable** const table)
 {
+	// no-op if NULL
+	if (*table == NULL)
+		return;
+
 	for (size_t i = 0; i < (*table)->n_columns; ++i)
 		dt_column_free(&(*table)->columns[i].column);
 
