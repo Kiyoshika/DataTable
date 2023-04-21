@@ -99,3 +99,8 @@ target_include_directories(dt_table_sample_rows PUBLIC ${DataTable_SOURCE_DIR}/i
 target_link_libraries(dt_table_sample_rows datatable)
 add_test(NAME dt_table_sample_rows COMMAND dt_table_sample_rows)
 
+add_executable(dt_table_split dt_table_split.c)
+target_include_directories(dt_table_split PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_split datatable)
+add_test(NAME dt_table_split COMMAND dt_table_split)
+

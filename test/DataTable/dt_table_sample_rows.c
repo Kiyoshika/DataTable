@@ -17,8 +17,9 @@ int main()
 	set2 = 12.52f;
 	dt_table_insert_row(table, 2, &set1, &set2);
 
+	set1 = 30;
 	set2 = 21.21f;
-	dt_table_insert_row(table, 2, NULL, &set2);
+	dt_table_insert_row(table, 2, &set1, &set2);
 
 	// sample 10 rows with replacement
 	struct DataTable* samples_with_replace = dt_table_sample_rows(table, 10, true);

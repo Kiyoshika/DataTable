@@ -337,4 +337,22 @@ dt_table_sample_rows(
 	const size_t n_samples,
 	const bool with_replacement);
 
+// split a table in two according to a proportion between 0 and 1 (exclusive).
+// 
+// e.g., if proportion is 75%, then 75% of the records will go into split1
+// and remaining 25% into split2.
+// 
+// split1 and split2 MUST be NULL pointers (they will be allocated in the function).
+//
+// returns DT_BAD_ARG is proportion is not in open interval (0.00f, 1.00f)
+// returns DT_BAD_ARG if either split1 or split2 is not NULL
+// returns DT_ALLOC_ERROR if couldn't allocate enough memory
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_table_split(
+	const struct DataTable* const table,
+	const float proportion,
+	struct DataTable** split1,
+	struct DataTable** split2);
+
 #endif
