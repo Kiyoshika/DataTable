@@ -763,7 +763,7 @@ __sample_without_replacement(
 	size_t sampled_rows = 0;
 	while (sampled_rows < n_samples)
 	{
-		size_t random_idx = (size_t)__get_random_index(0, table->n_rows);
+		size_t random_idx = (size_t)__get_random_index(0, table->n_rows - 1);
 		if (!hash_contains(htable, table, random_idx))
 		{
 			__transfer_row(samples, table, random_idx);

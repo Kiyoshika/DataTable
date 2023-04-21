@@ -807,3 +807,68 @@ dt_table_sample_rows(
 
 	return __sample_without_replacement(table, n_samples);
 }
+
+enum status_code_e
+dt_table_split(
+	const struct DataTable* const table,
+	const float proportion,
+	struct DataTable** split1,
+	struct DataTable** split2)
+{
+	if (!(proportion > 0.00f && proportion < 1.00f))
+		return DT_BAD_ARG;
+
+	if (*split1 != NULL || *split2 != NULL)
+		return DT_BAD_ARG;
+
+	size_t n_samples = (size_t)(proportion * table->n_rows);
+	
+	
+	// create empty hashtable with current table as a reference
+	struct HashTable* htable = hash_create(table, false);
+	if (!htable)
+		return DT_ALLOC_ERROR;
+
+	*split1 = dt_table_copy_skeleton(table);
+	if (!*split1)
+	{
+		hash_free(&htable);
+		return DT_ALLOC_ERROR;
+	}
+
+	// sample split1 (creating hash table to record which records were used)
+	size_t sampled_rows = 0;
+	while (sampled_rows < n_samples)
+	{
+		size_t random_idx = (size_t)__get_random_index(0, table->n_rows - 1);
+		if (!hash_contains(htable, table, random_idx))
+		{
+			__transfer_row(*split1, table, random_idx);
+			hash_insert(htable, random_idx);
+			sampled_rows++;
+		}
+	}
+
+	// iterate over table indices and insert the ones NOT in hash map to
+	// populate split2
+	*split2 = dt_table_copy_skeleton(table);
+	if (!*split2)
+	{
+		dt_table_free(split1);
+		hash_free(&htable);
+		return DT_ALLOC_ERROR;
+	}
+
+	for (size_t i = 0; i < table->n_rows; ++i)
+	{
+		if (!hash_contains(htable, table, i))
+		{
+			__transfer_row(*split2, table, i);
+			hash_insert(htable, i);
+		}
+	}
+
+	hash_free(&htable);
+
+	return DT_SUCCESS;
+}
