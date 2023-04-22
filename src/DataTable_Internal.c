@@ -776,3 +776,168 @@ __sample_without_replacement(
 
 	return samples;
 }
+
+static void
+__tokenize_line(
+	const char* const line,
+	const char delim,
+	char* tokens,
+	size_t* n_tokens)
+{
+	*n_tokens = 0;
+	memset(tokens, 0, 4096);
+
+	const size_t len = strlen(line);
+
+	bool inside_quotes = false;
+	size_t tokens_idx = 0;
+
+	for (size_t i = 0; i < len; ++i)
+	{
+		if (line[i] == '\'' || line[i] == '\"')
+		{
+			inside_quotes = !inside_quotes;
+			continue;
+		}
+
+		// hitting delimiter or newline character
+		if ((line[i] == delim && !inside_quotes) || line[i] == '\n')
+		{
+			tokens[tokens_idx++] = '\0';
+			(*n_tokens)++;
+			continue;
+		}
+
+		tokens[tokens_idx++] = line[i];
+	}
+}
+
+// this makes a huge assumption that the caller knows what they're doing.
+//
+// takes a character buffer with multiple NULL characters separating tokens.
+// finds the n-th NULL terminating character to extract a pointer to that specific token
+//
+// EXAMPLE:
+// tokens = "value1\0value2\0value3\0"
+// if we search for the second token, we will find the first NULL
+// character and return a pointer to the beginning of "value2"
+static const char* const
+__get_token(
+	const char* const tokens,
+	const size_t token_idx)
+{
+	// if getting first token, it's the beginning of the buffer
+	if (token_idx == 0)
+		return tokens;
+
+	size_t idx = 0;
+	size_t current_token_idx = 0;
+
+	while (true)
+	{
+
+		if (current_token_idx == token_idx)
+			return &tokens[idx];
+
+		if (tokens[idx++] == '\0')
+			current_token_idx++;
+	}
+
+	// unreachable
+	return NULL;
+}
+
+static struct DataTable*
+__parse_header_from_csv(
+	FILE* csv_file,
+	const char delim)
+{
+	char current_line[4096] = {0};
+	
+	char tokens[4096] = {0};
+	size_t n_tokens = 0;
+
+	// read header line
+	fgets(current_line, 4096, csv_file);
+	__tokenize_line(current_line, delim, tokens, &n_tokens);
+
+	// create array of column names after tokenizing header
+	char (*column_names)[MAX_COL_LEN] = calloc(n_tokens, sizeof(*column_names));
+	if (!column_names)
+		return NULL;
+	for (size_t i = 0; i < n_tokens; ++i)
+	{
+		// ensure column name is NOT NULL
+		const char* const token = __get_token(tokens, i);
+		if (strlen(token) == 0)
+			return NULL;
+
+		strcpy(column_names[i], __get_token(tokens, i));
+	}
+
+	// create array of STRING types
+	enum data_type_e* dtypes = calloc(n_tokens, sizeof(*dtypes));
+	if (!dtypes)
+	{
+		free(column_names);
+		return NULL;
+	}
+	for (size_t i = 0; i < n_tokens; ++i)
+		dtypes[i] = STRING;
+
+	struct DataTable* table = dt_table_create(n_tokens, column_names, dtypes);
+	free(column_names);
+	free(dtypes);
+
+	return table;
+}
+
+static void
+__parse_body_from_csv(
+	FILE* csv_file,
+	const char delim,
+	struct DataTable* const table)
+{
+	char current_line[4096] = {0};
+	
+	char tokens[4096] = {0};
+	size_t n_tokens = 0;
+
+	void* items = NULL;
+
+	// read next line in body
+	while (fgets(current_line, 4096, csv_file))
+	{
+		__tokenize_line(current_line, delim, tokens, &n_tokens);
+		if (!items)
+			items = calloc(n_tokens, sizeof(void*));
+
+		// create "shared" pointers to insert into table
+		for (size_t i = 0; i < table->n_columns; ++i)
+		{
+			char* value = strdup(__get_token(tokens, i));
+			// insert NULL value if string is empty
+			if (strlen(value) == 0)
+			{
+				memset((char*)items + i*sizeof(void*), 0, sizeof(void*));
+				free(value);
+			}
+			else
+				memcpy((char*)items + i*sizeof(void*), &value, sizeof(void*));
+		}
+
+		// insert values into table
+		dt_table_insert_row_from_array(table, items);
+
+		// cleanup values after inserting (copies are made at insert time)
+		for (size_t i = 0; i < table->n_columns; ++i)
+		{
+			char** value_addr = (char**)((char*)items + i*sizeof(void*));
+			free(*value_addr);
+			*value_addr = NULL;
+		}
+	}
+
+	free(items);
+
+}

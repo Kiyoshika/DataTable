@@ -104,3 +104,9 @@ target_include_directories(dt_table_split PUBLIC ${DataTable_SOURCE_DIR}/include
 target_link_libraries(dt_table_split datatable)
 add_test(NAME dt_table_split COMMAND dt_table_split)
 
+add_executable(dt_table_read_csv dt_table_read_csv.c)
+target_include_directories(dt_table_read_csv PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_read_csv datatable)
+add_test(NAME dt_table_read_csv COMMAND dt_table_read_csv)
+
+

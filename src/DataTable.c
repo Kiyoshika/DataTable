@@ -89,6 +89,26 @@ dt_table_insert_row(
 	return DT_SUCCESS;
 }
 
+enum status_code_e
+dt_table_insert_row_from_array(
+	struct DataTable* const table,
+	void* items)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		void* value = (char*)items + i*sizeof(void*);
+		if (*(char**)value == NULL)
+			value = NULL;
+
+		enum status_code_e status = dt_column_append_value(table->columns[i].column, value);
+		if (status != DT_SUCCESS)
+			return status;
+	}
+
+	table->n_rows++;
+	return DT_SUCCESS;
+}
+
 void
 dt_table_set_value(
 	struct DataTable* const table,
@@ -871,4 +891,28 @@ dt_table_split(
 	hash_free(&htable);
 
 	return DT_SUCCESS;
+}
+
+struct DataTable*
+dt_table_read_csv(
+	const char* const filepath,
+	const char delim,
+	const enum data_type_e* const column_types)
+{
+	FILE* csv_file = fopen(filepath, "r");
+	if (!csv_file)
+		return NULL;
+
+	// create table skeleton after reading header line
+	struct DataTable* table = __parse_header_from_csv(csv_file, delim);
+	if (!table)
+	{
+		fclose(csv_file);
+		return NULL;
+	}
+	
+	// read remaining body of CSV
+	__parse_body_from_csv(csv_file, delim, table);
+	
+	return table;
 }
