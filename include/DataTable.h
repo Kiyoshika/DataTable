@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "DataColumn.h"
 #include "StatusCodes.h"
@@ -33,7 +34,7 @@ struct DataTable*
 dt_table_create(
 	const size_t n_columns,
 	const char (*column_names)[MAX_COL_LEN],
-	const enum data_type_e* data_types);
+	const enum data_type_e* const data_types);
 
 // free memory allocated by table (also frees the underlying columns)
 void
@@ -48,6 +49,15 @@ dt_table_insert_row(
 	struct DataTable* const table,
 	size_t n_columns,
 	...);
+
+// insert a row from an array of pointers.
+// this serves as an alternative to dt_table_insert_row and is mainly used internally.
+// returns DT_ALLOC_ERROR if there was a problem resizing.
+// returns DT_SUCCESS otherwise.
+enum status_code_e
+dt_table_insert_row_from_array(
+	struct DataTable* const table,
+	void* items);
 
 // insert an empty row (typically used internally but exposed to the public)
 // returns DT_ALLOC_ERROR if there was a problem resizing.
@@ -354,5 +364,23 @@ dt_table_split(
 	const float proportion,
 	struct DataTable** split1,
 	struct DataTable** split2);
+
+// read and construct a data table from a CSV file.
+// NOTE: assumes first row is a header row to determine column names
+// NOTE: handles a maximum of 4095 characters per line (will be truncated)
+// NOTE: will ignore delimiters inside single (') or double (") quotes.
+//
+// user can optionally pass the column types (if so, need to provide n_columns)
+// to set the appropriate data types for each column.
+// otherwise, we naively assume int64_t for all int-like types, double for all decimals and STRING for anything else.
+//
+// if you pass NULL to column_types, you can set n_columns to 0 (it's ignored anyways)
+//
+// returns NULL on failure
+struct DataTable*
+dt_table_read_csv(
+	const char* const filepath,
+	const char delim,
+	const enum data_type_e* const column_types);
 
 #endif
