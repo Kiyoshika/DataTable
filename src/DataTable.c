@@ -918,8 +918,6 @@ dt_table_read_csv(
 	// type and parse body with type conversion
 	if (column_types)
 	{
-		// TODO: wrap this in a function so end users can convert types
-		// independent of this function
 		for (size_t i = 0; i < table->n_columns; ++i)
 		{
 			table->columns[i].column->type = column_types[i];
@@ -927,6 +925,9 @@ dt_table_read_csv(
 		}
 		__convert_csv_column_types_from_string(table);
 	}
+	// infer column types if they're not provided by the user
+	else
+		__infer_csv_types(table);
 	
 	return table;
 }

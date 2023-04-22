@@ -6,6 +6,7 @@
  */
 #include <math.h>
 #include <time.h>
+#include <ctype.h>
 
 
 // get the column index for a specific column name.
@@ -1060,4 +1061,75 @@ __convert_csv_column_types_from_string(
 {
 	for (size_t i = 0; i < table->n_columns; ++i)
 		__convert_column_type_from_string(table->columns[i].column);
+}
+
+// perform naive type inference which only determines:
+// STRING, DOUBLE, INT64 to UINT64
+// if user wants smaller types, they will have to convert separately
+static enum data_type_e
+__infer_column_type(
+	struct DataColumn* const column)
+{
+	// below are the rules (in order) to determine type
+	
+	// check for any alpha characters --> STRING
+	//     can immediately terminate after we find a single alpha char
+	// check if any contain '.' --> DOUBLE
+	//     need to make sure NO alpha characters are present, so we must
+	//     still iterate over entire column
+	// check if first character is '-' to determine negativity
+	//     if not STRING or DOUBLE after iterating entire column, we can
+	//     choose either UINT64 or INT64 depending on presence of negation
+	
+	bool contains_decimal = false;
+	bool contains_negative = false;
+
+	for (size_t i = 0; i < column->n_values; ++i)
+	{
+		char** value_addr = (char**)((char*)column->value + i*sizeof(char**));
+		size_t len = strlen(*value_addr);
+		for (size_t k = 0; k < len; ++k)
+		{
+			char current_char = (*value_addr)[k];
+
+			if (k == 0 && current_char == '-')
+				contains_negative = true;
+
+			// if contains a non-digit value (besides '.' and '-') it is a string
+			if (!isdigit(current_char) && current_char != '.' && current_char != '-')
+				goto is_string;
+
+			if (current_char == '.')
+				contains_decimal = true;
+		}
+	}
+
+	// at this point, it's impossible to be a string, so numeric types are left
+
+	if (contains_decimal)
+		return DOUBLE;
+
+	if (contains_negative)
+		return INT64;
+
+	return UINT64;
+
+	// special case, this will only be reached from inside the loops
+is_string:
+	return STRING;
+}
+
+static void
+__infer_csv_types(
+	struct DataTable* const table)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		enum data_type_e inferred_dtype = __infer_column_type(table->columns[i].column);
+		table->columns[i].column->type = inferred_dtype;
+		table->columns[i].column->type_size = dt_type_to_size(inferred_dtype);
+	}
+
+	// take inferred types and cast entire table
+	__convert_csv_column_types_from_string(table);
 }
