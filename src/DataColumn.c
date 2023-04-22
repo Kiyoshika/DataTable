@@ -32,7 +32,8 @@ char* dt_type_to_str(
 	return "UNKNOWN";
 }
 
-static size_t get_type_size(
+size_t
+dt_type_to_size(
 	const enum data_type_e type)
 {
 	switch (type)
@@ -149,7 +150,7 @@ dt_column_create(
 		return DT_ALLOC_ERROR;
 
 	// NOTE: *2 + 1 to handle the case of 0 (empty column, we still want the ability to append)
-	(*column)->value = calloc(capacity * 2 + 1, get_type_size(type));
+	(*column)->value = calloc(capacity * 2 + 1, dt_type_to_size(type));
 	if (!(*column)->value)
 	{
 		free(*column);
@@ -157,7 +158,7 @@ dt_column_create(
 		return DT_ALLOC_ERROR;
 	}
 	(*column)->type = type;
-	(*column)->type_size = get_type_size(type);
+	(*column)->type_size = dt_type_to_size(type);
 	(*column)->n_values = capacity;
 	(*column)->value_capacity = capacity * 2 + 1;
 

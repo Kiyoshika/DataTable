@@ -29,6 +29,10 @@ enum data_type_e
 char* dt_type_to_str(
 	const enum data_type_e type);
 
+// convert data type enum to sizeof() operation
+size_t dt_type_to_size(
+	const enum data_type_e type);
+
 struct DataColumn
 {
 	enum data_type_e type;

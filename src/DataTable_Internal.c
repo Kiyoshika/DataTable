@@ -6,6 +6,7 @@
  */
 #include <math.h>
 #include <time.h>
+#include <ctype.h>
 
 
 // get the column index for a specific column name.
@@ -791,21 +792,27 @@ __tokenize_line(
 
 	bool inside_quotes = false;
 	size_t tokens_idx = 0;
+	char quote_start_char = 0;
 
 	for (size_t i = 0; i < len; ++i)
 	{
-		if (line[i] == '\'' || line[i] == '\"')
-		{
-			inside_quotes = !inside_quotes;
-			continue;
-		}
-
 		// hitting delimiter or newline character
 		if ((line[i] == delim && !inside_quotes) || line[i] == '\n')
 		{
 			tokens[tokens_idx++] = '\0';
 			(*n_tokens)++;
 			continue;
+		}
+
+		if (line[i] == '\'' || line[i] == '\"')
+		{
+			if (!inside_quotes)
+			{
+				quote_start_char = line[i];
+				inside_quotes = true;
+			}
+			else if (inside_quotes && quote_start_char == line[i])
+				inside_quotes = false;
 		}
 
 		tokens[tokens_idx++] = line[i];
@@ -939,5 +946,190 @@ __parse_body_from_csv(
 	}
 
 	free(items);
+}
 
+static void
+__convert_column_type_from_string(
+	struct DataColumn* const column)
+{
+	// if the desired type is a string, no need for conversion
+	if (column->type == STRING)
+		return;
+
+	// iterate over each item in column and convert from string to
+	// appropriate type
+	//
+	// all of the current values in the column should be string addresses
+	//
+	// we have to do some voodoo magic to extract the string addresses
+	// because at this point we have already changed the column types and
+	// sizes. It will be a little gross
+	for (size_t i = 0; i < column->n_values; ++i)
+	{
+		char** value_addr = (char**)((char*)column->value + i*sizeof(char**));
+		char* value_str = *value_addr;
+		char* endptr = NULL;
+
+		switch (column->type)
+		{
+			case UINT8:
+			{
+				uint8_t value = (uint8_t)strtoul(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case UINT16:
+			{
+				uint16_t value = (uint16_t)strtoul(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case UINT32:
+			{
+				uint32_t value = (uint32_t)strtoul(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case UINT64:
+			{
+				uint64_t value = (uint64_t)strtoull(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case INT8:
+			{
+				int8_t value = (int8_t)strtol(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case INT16:
+			{
+				int16_t value = (int16_t)strtol(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case INT32:
+			{
+				int32_t value = (int32_t)strtol(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case INT64:
+			{
+				int64_t value = (int64_t)strtoll(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case FLOAT:
+			{
+				float value = strtof(value_str, &endptr);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case DOUBLE:
+			{
+				double value = strtod(value_str, &endptr);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			// do nothing, just here to avoid compiler warning
+			case STRING:
+				break;
+		}
+
+		// strings are heap allocated so we free them after converting
+		free(value_str);
+
+		// disable deallocator since it's no longer heap allocated
+		column->deallocator = NULL;
+	}
+}
+
+static void
+__convert_csv_column_types_from_string(
+	struct DataTable* const table)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+		__convert_column_type_from_string(table->columns[i].column);
+}
+
+// perform naive type inference which only determines:
+// STRING, DOUBLE, INT64 to UINT64
+// if user wants smaller types, they will have to convert separately
+static enum data_type_e
+__infer_column_type(
+	struct DataColumn* const column)
+{
+	// below are the rules (in order) to determine type
+	
+	// check for any alpha characters --> STRING
+	//     can immediately terminate after we find a single alpha char
+	// check if any contain '.' --> DOUBLE
+	//     need to make sure NO alpha characters are present, so we must
+	//     still iterate over entire column
+	// check if first character is '-' to determine negativity
+	//     if not STRING or DOUBLE after iterating entire column, we can
+	//     choose either UINT64 or INT64 depending on presence of negation
+	
+	bool contains_decimal = false;
+	bool contains_negative = false;
+
+	for (size_t i = 0; i < column->n_values; ++i)
+	{
+		char** value_addr = (char**)((char*)column->value + i*sizeof(char**));
+		size_t len = strlen(*value_addr);
+		for (size_t k = 0; k < len; ++k)
+		{
+			char current_char = (*value_addr)[k];
+
+			if (k == 0 && current_char == '-')
+				contains_negative = true;
+
+			// if contains a non-digit value (besides '.' and '-') it is a string
+			if (!isdigit(current_char) && current_char != '.' && current_char != '-')
+				goto is_string;
+
+			if (current_char == '.')
+				contains_decimal = true;
+		}
+	}
+
+	// at this point, it's impossible to be a string, so numeric types are left
+
+	if (contains_decimal)
+		return DOUBLE;
+
+	if (contains_negative)
+		return INT64;
+
+	return UINT64;
+
+	// special case, this will only be reached from inside the loops
+is_string:
+	return STRING;
+}
+
+static void
+__infer_csv_types(
+	struct DataTable* const table)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+	{
+		enum data_type_e inferred_dtype = __infer_column_type(table->columns[i].column);
+		table->columns[i].column->type = inferred_dtype;
+		table->columns[i].column->type_size = dt_type_to_size(inferred_dtype);
+	}
+
+	// take inferred types and cast entire table
+	__convert_csv_column_types_from_string(table);
 }
