@@ -910,9 +910,23 @@ dt_table_read_csv(
 		fclose(csv_file);
 		return NULL;
 	}
-	
-	// read remaining body of CSV
+
+
 	__parse_body_from_csv(csv_file, delim, table);
+
+	// if passing custom column types, can change them from the default string
+	// type and parse body with type conversion
+	if (column_types)
+	{
+		// TODO: wrap this in a function so end users can convert types
+		// independent of this function
+		for (size_t i = 0; i < table->n_columns; ++i)
+		{
+			table->columns[i].column->type = column_types[i];
+			table->columns[i].column->type_size = dt_type_to_size(column_types[i]);
+		}
+		__convert_csv_column_types_from_string(table);
+	}
 	
 	return table;
 }

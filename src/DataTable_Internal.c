@@ -791,21 +791,27 @@ __tokenize_line(
 
 	bool inside_quotes = false;
 	size_t tokens_idx = 0;
+	char quote_start_char = 0;
 
 	for (size_t i = 0; i < len; ++i)
 	{
-		if (line[i] == '\'' || line[i] == '\"')
-		{
-			inside_quotes = !inside_quotes;
-			continue;
-		}
-
 		// hitting delimiter or newline character
 		if ((line[i] == delim && !inside_quotes) || line[i] == '\n')
 		{
 			tokens[tokens_idx++] = '\0';
 			(*n_tokens)++;
 			continue;
+		}
+
+		if (line[i] == '\'' || line[i] == '\"')
+		{
+			if (!inside_quotes)
+			{
+				quote_start_char = line[i];
+				inside_quotes = true;
+			}
+			else if (inside_quotes && quote_start_char == line[i])
+				inside_quotes = false;
 		}
 
 		tokens[tokens_idx++] = line[i];
@@ -939,5 +945,119 @@ __parse_body_from_csv(
 	}
 
 	free(items);
+}
 
+static void
+__convert_column_type_from_string(
+	struct DataColumn* const column)
+{
+	// if the desired type is a string, no need for conversion
+	if (column->type == STRING)
+		return;
+
+	// iterate over each item in column and convert from string to
+	// appropriate type
+	//
+	// all of the current values in the column should be string addresses
+	//
+	// we have to do some voodoo magic to extract the string addresses
+	// because at this point we have already changed the column types and
+	// sizes. It will be a little gross
+	for (size_t i = 0; i < column->n_values; ++i)
+	{
+		char** value_addr = (char**)((char*)column->value + i*sizeof(char**));
+		char* value_str = *value_addr;
+		char* endptr = NULL;
+
+		switch (column->type)
+		{
+			case UINT8:
+			{
+				uint8_t value = (uint8_t)strtoul(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case UINT16:
+			{
+				uint16_t value = (uint16_t)strtoul(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case UINT32:
+			{
+				uint32_t value = (uint32_t)strtoul(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case UINT64:
+			{
+				uint64_t value = (uint64_t)strtoull(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case INT8:
+			{
+				int8_t value = (int8_t)strtol(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case INT16:
+			{
+				int16_t value = (int16_t)strtol(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case INT32:
+			{
+				int32_t value = (int32_t)strtol(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case INT64:
+			{
+				int64_t value = (int64_t)strtoll(value_str, &endptr, 10);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case FLOAT:
+			{
+				float value = strtof(value_str, &endptr);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			case DOUBLE:
+			{
+				double value = strtod(value_str, &endptr);
+				dt_column_set_value(column, i, &value);
+				break;
+			}
+
+			// do nothing, just here to avoid compiler warning
+			case STRING:
+				break;
+		}
+
+		// strings are heap allocated so we free them after converting
+		free(value_str);
+
+		// disable deallocator since it's no longer heap allocated
+		column->deallocator = NULL;
+	}
+}
+
+static void
+__convert_csv_column_types_from_string(
+	struct DataTable* const table)
+{
+	for (size_t i = 0; i < table->n_columns; ++i)
+		__convert_column_type_from_string(table->columns[i].column);
 }
