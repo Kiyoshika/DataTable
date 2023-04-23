@@ -10,7 +10,8 @@ enum status_code_e
 	DT_SIZE_MISMATCH = -4,
 	DT_FAILURE = -5,
 	DT_BAD_ARG = -6,
-	DT_COLUMN_NOT_FOUND = -7
+	DT_COLUMN_NOT_FOUND = -7,
+	DT_DUPLICATE = -8
 };
 
 #endif

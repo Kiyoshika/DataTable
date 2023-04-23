@@ -193,7 +193,7 @@ dt_table_copy(
 // returns DT_TYPE_MISMATCH if each column do not have same types
 // returns DT_SUCCESS otherwise
 enum status_code_e
-dt_table_append_single(
+dt_table_append_by_row(
 	struct DataTable* const dest,
 	const struct DataTable* const src);
 
@@ -203,7 +203,7 @@ dt_table_append_single(
 // returns DT_TYPE_MISMATCH if column types don't match between dest and any of the other tables
 // returns DT_SUCCESS otherwise
 enum status_code_e
-dt_table_append(
+dt_table_append_multiple_by_row(
 	struct DataTable* const dest,
 	const size_t n_tables,
 	...);
@@ -225,8 +225,10 @@ dt_table_distinct(
 
 // insert new column into table.
 // NOTE: the column is COPIED when inserted; ownership is NOT transferred.
+//
 // returns DT_ALLOC_ERROR if failed to resize.
 // returns DT_SiZE_MISMATCH if column's rows do not match table.
+// returns DT_DUPLICATE if column name already exists
 // returns DT_SUCCESS otherwise
 enum status_code_e
 dt_table_insert_column(
@@ -382,5 +384,31 @@ dt_table_read_csv(
 	const char* const filepath,
 	const char delim,
 	const enum data_type_e* const column_types);
+
+// append two tables by columns (horizontally).
+// tables MUST have same number of rows.
+// [dest] table is modified inplace with the new columns appended
+//
+// returns DT_SIZE_MISMATCH if rows are different
+// returns DT_ALLOC_ERROR if couldn't allocate enough memory
+// returns DT_DUPLICATE if column name already exists
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_table_append_by_column(
+	struct DataTable* const dest,
+	const struct DataTable* const src);
+
+// append multiple tables by columns (horizontally).
+// each table MUST have same number of rows.
+// [dest] table is modified inplace with the new columns appended
+//
+// returns DT_SIZE_MISMATCH if any of the tables' rows are different
+// returns DT_ALLOC_ERROR if couldn't allocate enough memory
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_table_append_multiple_by_column(
+	struct DataTable* const dest,
+	const size_t n_tables,
+	...);
 
 #endif

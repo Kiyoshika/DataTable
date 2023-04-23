@@ -109,4 +109,7 @@ target_include_directories(dt_table_read_csv PUBLIC ${DataTable_SOURCE_DIR}/incl
 target_link_libraries(dt_table_read_csv datatable)
 add_test(NAME dt_table_read_csv COMMAND dt_table_read_csv)
 
-
+add_executable(dt_table_append_column dt_table_append_column.c)
+target_include_directories(dt_table_append_column PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_append_column datatable)
+add_test(NAME dt_table_append_column COMMAND dt_table_append_column)

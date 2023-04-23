@@ -419,7 +419,7 @@ dt_table_copy(
 }
 
 enum status_code_e
-dt_table_append_single(
+dt_table_append_by_row(
 	struct DataTable* const dest,
 	const struct DataTable* const src)
 {
@@ -442,7 +442,7 @@ dt_table_append_single(
 }
 
 enum status_code_e
-dt_table_append(
+dt_table_append_multiple_by_row(
 	struct DataTable* const dest,
 	const size_t n_tables,
 	...)
@@ -453,7 +453,7 @@ dt_table_append(
 	for (size_t i = 0; i < n_tables; ++i)
 	{
 		enum status_code_e status_code;
-		if ((status_code = dt_table_append_single(dest, va_arg(tables, const struct DataTable*))) != DT_SUCCESS)
+		if ((status_code = dt_table_append_by_row(dest, va_arg(tables, const struct DataTable*))) != DT_SUCCESS)
 			return status_code;
 	}
 
@@ -539,6 +539,13 @@ dt_table_insert_column(
 {
 	if (table->n_rows != column->n_values)
 		return DT_SIZE_MISMATCH;
+
+	// check to make sure column name doesn't already exist
+	// (returns true if column isn't found, so we want to check if it's false)
+	bool is_error = false;
+	__get_column_index(table, column_name, &is_error);
+	if (!is_error)
+		return DT_DUPLICATE;
 
 	struct DataColumn* column_copy = dt_column_copy(column);
 	if (!column_copy)
@@ -930,4 +937,42 @@ dt_table_read_csv(
 		__infer_csv_types(table);
 	
 	return table;
+}
+
+enum status_code_e
+dt_table_append_by_column(
+	struct DataTable* const dest,
+	const struct DataTable* const src)
+{
+	for (size_t i = 0; i < src->n_columns; ++i)
+	{
+		enum status_code_e status = dt_table_insert_column(
+				dest, 
+				src->columns[i].column,
+				src->columns[i].name);
+
+		if (status != DT_SUCCESS)
+			return status;
+	}
+
+	return DT_SUCCESS;
+}
+
+enum status_code_e
+dt_table_append_multiple_by_column(
+	struct DataTable* const dest,
+	const size_t n_tables,
+	...)
+{
+	va_list tables;
+	va_start(tables, n_tables);
+
+	for (size_t i = 0; i < n_tables; ++i)
+	{
+		enum status_code_e status_code;
+		if ((status_code = dt_table_append_by_column(dest, va_arg(tables, const struct DataTable*))) != DT_SUCCESS)
+			return status_code;
+	}
+
+	return DT_SUCCESS;
 }
