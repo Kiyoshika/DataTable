@@ -33,6 +33,11 @@ char* dt_type_to_str(
 size_t dt_type_to_size(
 	const enum data_type_e type);
 
+// default deallocator used for strings
+void
+dt_string_dealloc(
+	void* item);
+
 struct DataColumn
 {
 	enum data_type_e type;
@@ -299,5 +304,11 @@ enum status_code_e
 dt_column_divide(
 	struct DataColumn* const dest,
 	const struct DataColumn* src);
+
+// cast a column data type to another type
+void
+dt_column_cast(
+	struct DataColumn* const column,
+	const enum data_type_e new_type);
 
 #endif

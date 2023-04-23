@@ -1,4 +1,5 @@
 #include "DataColumn.h"
+#include "DataColumn_Internal.c"
 
 char* dt_type_to_str(
 	const enum data_type_e type)
@@ -104,7 +105,7 @@ __insert_null_value(
 	return DT_SUCCESS;
 }
 
-static void
+void
 dt_string_dealloc(
 	void* item)
 {
@@ -1006,4 +1007,46 @@ dt_column_divide(
 	}
 
 	return DT_SUCCESS;
+}
+
+void
+dt_column_cast(
+	struct DataColumn* const column,
+	const enum data_type_e new_type)
+{
+	// ignore cast if type is the same
+	if (column->type == new_type)
+		return;
+
+	enum data_type_e old_type = column->type;
+
+	// change size but NOT type yet
+	// (this is because if type is string, it will attempt to free
+	// a non-heap allocated address)
+	size_t old_size = column->type_size;
+	column->type_size = dt_type_to_size(new_type);
+
+	// reallocate size buffer to larger size
+	// (even if size is smaller, we still need to fetch values from
+	// larger size pool)
+	// dangerously assuming allocation succeeds, should probably change that
+	if (column->type_size > old_size)
+		column->value = realloc(column->value, column->value_capacity * column->type_size);
+	
+
+	// string -> numeric
+	if (old_type == STRING && new_type != STRING)
+		__cast_column_string_to_numeric(column, new_type);
+
+
+	// numeric -> string
+	else if (old_type != STRING && new_type == STRING)
+		__cast_column_numeric_to_string(column, old_type);
+
+	// numeric -> numeric
+	else
+		__cast_column_int_to_int(column, old_type, new_type);
+
+	// finally change type after all conversions are done
+	column->type = new_type;
 }
