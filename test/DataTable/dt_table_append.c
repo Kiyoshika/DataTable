@@ -38,7 +38,7 @@ int main()
 	dt_table_insert_row(table2, 2, &set1, &set2);
 
 	// APPEND
-	dt_table_append(table, 1, table2);
+	dt_table_append_multiple_by_row(table, 1, table2);
 	if (table->n_rows != 6)
 	{
 		fprintf(stderr, "Expected 6 rows in table after appending but got %zu.\n", table->n_rows);
@@ -127,7 +127,7 @@ int main()
 	struct DataTable* table3 = dt_table_create(3, colnames2, types2);
 
 	enum status_code_e status_code = DT_SUCCESS;
-	if ((status_code = dt_table_append(table, 1, table3)) == DT_SUCCESS)
+	if ((status_code = dt_table_append_multiple_by_row(table, 1, table3)) == DT_SUCCESS)
 	{
 		fprintf(stderr, "Was expecting appending table3 into table to fail but it succeeded.\n");
 		goto cleanup;
@@ -138,7 +138,7 @@ int main()
 	enum data_type_e types3[2] = { INT32, INT32 };
 	struct DataTable* table4 = dt_table_create(2, colnames3, types3);
 
-	if ((status_code = dt_table_append(table, 1, table4)) == DT_SUCCESS)
+	if ((status_code = dt_table_append_multiple_by_row(table, 1, table4)) == DT_SUCCESS)
 	{
 		fprintf(stderr, "Was expecting appending table4 into table to fail but it succeeded.\n");
 		goto cleanup;
