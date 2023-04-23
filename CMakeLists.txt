@@ -14,3 +14,6 @@ add_subdirectory(src)
 
 enable_testing()
 add_subdirectory(test)
+
+# copy test CSV data to build/test/DataTable directory
+file(COPY mytable.csv DESTINATION test/DataTable)
