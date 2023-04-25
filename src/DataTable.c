@@ -976,3 +976,23 @@ dt_table_append_multiple_by_column(
 
 	return DT_SUCCESS;
 }
+
+enum status_code_e
+dt_table_cast_columns(
+	struct DataTable* const table,
+	const size_t n_columns,
+	const char (*column_names)[MAX_COL_LEN],
+	const enum data_type_e* new_column_types)
+{
+	for (size_t i = 0; i < n_columns; ++i)
+	{
+		bool is_error = false;
+		size_t column_idx = __get_column_index(table, column_names[i], &is_error);
+		if (is_error)
+			return DT_COLUMN_NOT_FOUND;
+
+		dt_column_cast(table->columns[column_idx].column, new_column_types[i]);
+	}
+
+	return DT_SUCCESS;
+}

@@ -411,4 +411,17 @@ dt_table_append_multiple_by_column(
 	const size_t n_tables,
 	...);
 
+// cast one more more columns to a new data type.
+// pass the number of columns to cast along with the array
+// of column names and the array of NEW column data types.
+// 
+// returns DT_COLUMN_NOT_FOUND if one of the columns isn't found.
+// returns DT_SUCCESS otherwise
+enum status_code_e
+dt_table_cast_columns(
+	struct DataTable* const table,
+	const size_t n_columns,
+	const char (*column_names)[MAX_COL_LEN],
+	const enum data_type_e* new_column_types);
+
 #endif
