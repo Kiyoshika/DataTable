@@ -55,47 +55,128 @@ __reverse_string(
         str[i] = str[len - i - 1];
         str[len - i - 1] = temp;
     }
-}	
+}
+
+/*
+ * a macro that takes creates an array of all the OLD string values
+ * in a column, clears the buffer, converts the string into a numeric 
+ * and stores the value back into the buffer.
+ */
+#define convert_string_to_numeric(column, type_enum, type) \
+	{ \
+	char** old_values = calloc(column->n_values, sizeof(*old_values)); \
+	for (size_t i = 0; i < column->n_values; ++i) \
+		old_values[i] = strdup(*(char**)((char*)column->value + i*sizeof(char**))); \
+	for (size_t i = 0; i < column->n_values; ++i) \
+		free(*(char**)((char*)column->value + i*sizeof(char**))); \
+	memset(column->value, 0, column->value_capacity * column->type_size); \
+	for (size_t i = 0; i < column->n_values; ++i) \
+	{ \
+		char* endptr = NULL; \
+		type new_value; \
+		switch(type_enum) \
+		{ \
+			case DOUBLE: \
+				new_value = strtod(old_values[i], &endptr); \
+				break; \
+			case FLOAT: \
+				new_value = strtof(old_values[i], &endptr); \
+				break; \
+			case UINT8: \
+			case UINT16: \
+			case UINT32: \
+				new_value = (type)strtoul(old_values[i], &endptr, 10); \
+				break; \
+			case UINT64: \
+				new_value = (type)strtoull(old_values[i], &endptr, 10); \
+				break; \
+			case INT8: \
+			case INT16: \
+			case INT32: \
+				new_value = (type)strtol(old_values[i], &endptr, 10); \
+				break; \
+			case INT64: \
+				new_value = (type)strtoll(old_values[i], &endptr, 10); \
+				break; \
+			case STRING: \
+				break; \
+		} \
+		dt_column_set_value(column, i, &new_value); \
+		free(old_values[i]); \
+	} \
+	free(old_values); \
+	column->deallocator = NULL; \
+	}
 
 static void
 __cast_column_string_to_numeric(
 	struct DataColumn* const column,
 	enum data_type_e new_type)
 {
-	// TODO: finish this logic for other types
 	switch (new_type)
 	{
 		case DOUBLE:
-		{
-			// create copies to use later
-			char** old_values = calloc(column->n_values, sizeof(*old_values));
-			for (size_t i = 0; i < column->n_values; ++i)
-				old_values[i] = strdup(*(char**)((char*)column->value + i*sizeof(char**)));
-
-			// free all original strings before clearing value buffer
-			// (or it would lead to memory leaks)
-			for (size_t i = 0; i < column->n_values; ++i)
-				free(*(char**)((char*)column->value + i*sizeof(char**)));
-
-			memset(column->value, 0, column->value_capacity * column->type_size);
-			// convert copies to appropriate type
-			for (size_t i = 0; i < column->n_values; ++i)
-			{
-				char* endptr = NULL;
-				double new_value = strtod(old_values[i], &endptr);
-				dt_column_set_value(column, i, &new_value);
-				free(old_values[i]);
-			}
-
-			free(old_values);
-			
-			// disable deallocator since it's not a string type anymore
-			column->deallocator = NULL;
-
+			convert_string_to_numeric(column, new_type, double);
 			break;
-		}
+		case FLOAT:
+			convert_string_to_numeric(column, new_type, float);
+			break;
+		case UINT8:
+			convert_string_to_numeric(column, new_type, uint8_t);
+			break;
+		case UINT16:
+			convert_string_to_numeric(column, new_type, uint16_t);
+			break;
+		case UINT32:
+			convert_string_to_numeric(column, new_type, uint32_t);
+			break;
+		case UINT64:
+			convert_string_to_numeric(column, new_type, uint64_t);
+			break;
+		case INT8:
+			convert_string_to_numeric(column, new_type, int8_t);
+			break;
+		case INT16:
+			convert_string_to_numeric(column, new_type, int16_t);
+			break;
+		case INT32:
+			convert_string_to_numeric(column, new_type, int32_t);
+			break;
+		case INT64:
+			convert_string_to_numeric(column, new_type, int64_t);
+			break;
+		// do nothing but ignore compiler warnings
+		case STRING:
+			break;
 	}
 }
+
+/*
+ * a macro that takes creates an array of all the OLD numeric values
+ * in a column, clears the buffer, converts the numeric into a string
+ * and stores the address back into the buffer.
+ *
+ * note that the buffer is already resized prior to calling this macro
+ * (e.g., if moving from a uint8_t to char*, the buffer would need to be
+ * larger)
+ */
+#define convert_numeric_to_string(column, type) \
+	{ \
+	type* old_values = calloc(column->n_values, sizeof(type)); \
+	for (size_t i = 0; i < column->n_values; ++i) \
+		old_values[i] = *(type*)((char*)column->value + i*sizeof(type)); \
+	memset(column->value, 0, column->type_size * column->value_capacity); \
+	for (size_t i = 0; i < column->n_values; ++i) \
+	{ \
+		char* numeric_string = calloc(25, sizeof(char)); \
+		integer_to_string(old_values[i], numeric_string); \
+		__reverse_string(numeric_string); \
+		dt_column_set_value(column, i, &numeric_string); \
+	} \
+	free(old_values); \
+	column->deallocator = &dt_string_dealloc; \
+	}
+
 
 static void
 __cast_column_numeric_to_string(
@@ -104,33 +185,34 @@ __cast_column_numeric_to_string(
 {
 	switch (old_type)
 	{
-		// TODO: finish this logic for all other int types (turn this into a macro)
+		case INT8:
+			convert_numeric_to_string(column, int8_t);
+			break;
+		case INT16:
+			convert_numeric_to_string(column, int16_t);
+			break;
 		case INT32:
-			// the size of the column is different, record all OLD values
-			// to replace (otherwise we'll have a bunch of overlapping
-			// memory addresses which will overwrite each other)
-			int32_t* old_values = calloc(column->n_values, sizeof(int32_t));
-			for (size_t i = 0; i < column->n_values; ++i)
-				old_values[i] = *(int32_t*)((char*)column->value + i*sizeof(int32_t));
-
-			// clear value buffer before re-writing string addresses
-			memset(column->value, 0, column->type_size * column->value_capacity);
-			for (size_t i = 0; i < column->n_values; ++i)
-			{
-				char* numeric_string = calloc(25, sizeof(char));
-				integer_to_string(old_values[i], numeric_string);
-				// the string is actually reversed and it'll be too annoying to update the macro
-				// so I'm taking the easy way out
-				__reverse_string(numeric_string);
-				dt_column_set_value(column, i, &numeric_string);
-				// NOTE: we're not freeing numeric_string since the column type as of now
-				// is technically not STRING yet so a copy is NOT made
-			}
-
-			free(old_values);
-
-			// enable deallocator since we have a string type now
-			column->deallocator = &dt_string_dealloc;
+			convert_numeric_to_string(column, int32_t);
+			break;
+		case INT64:
+			convert_numeric_to_string(column, int64_t);
+			break;
+		case UINT8:
+			convert_numeric_to_string(column, uint8_t);
+			break;
+		case UINT16:
+			convert_numeric_to_string(column, uint16_t);
+			break;
+		case UINT32:
+			convert_numeric_to_string(column, uint32_t);
+			break;
+		case UINT64:
+			convert_numeric_to_string(column, uint64_t);
+			break;
+		// TODO: handle these separately
+		case FLOAT:
+			break;
+		case DOUBLE:
 			break;
 
 		// do nothing, but here to avoid compiler warning
@@ -139,16 +221,35 @@ __cast_column_numeric_to_string(
 	}
 }
 
+/*
+ * a macro that takes creates an array of all the OLD numeric values
+ * in a column, clears the buffer, converts the numeric into the other type 
+ * and stores the address back into the buffer.
+ *
+ * note that the buffer is already resized prior to calling this macro
+ * (e.g., if moving from a uint8_t to uint64_t, the buffer would need to be
+ * larger)
+ */
+#define convert_numeric_to_numeric(column, from_type, to_type) \
+	{ \
+		from_type* old_values = calloc(column->n_values, sizeof(from_type)); \
+		for (size_t i = 0; i < column->n_values; ++i) \
+			old_values[i] = *(from_type*)((char*)column->value + i*sizeof(from_type)); \
+		memset(column->value, 0, column->value_capacity * column->type_size); \
+		for (size_t i = 0; i < column->n_values; ++i) \
+		{ \
+			to_type new_value = (to_type)old_values[i]; \
+			dt_column_set_value(column, i, &new_value); \
+		} \
+		free(old_values); \
+	} \
+
 static void
 __cast_column_int_to_int(
 	struct DataColumn* const column,
 	enum data_type_e from_type,
 	enum data_type_e to_type)
 {
-	// column types can be different sizes, so record OLD values,
-	// clear the value buffer, and rewrite with the new types
-	//
-	// TODO: finish logic for all the other types (turn this into a macro)
 	switch (from_type)
 	{
 		case FLOAT:
@@ -156,24 +257,413 @@ __cast_column_int_to_int(
 			switch (to_type)
 			{
 				case UINT8:
-				{
-					float* old_values = calloc(column->n_values, sizeof(float));
-					for (size_t i = 0; i < column->n_values; ++i)
-						old_values[i] = *(float*)((char*)column->value + i*sizeof(float));
-
-					memset(column->value, 0, column->value_capacity * column->type_size);
-					for (size_t i = 0; i < column->n_values; ++i)
-					{
-						uint8_t new_value = (uint8_t)old_values[i];
-						dt_column_set_value(column, i, &new_value);
-					}
-
-					free(old_values);
+					convert_numeric_to_numeric(column, float, uint8_t);
 					break;
-				}
-				
+				case UINT16:
+					convert_numeric_to_numeric(column, float, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, float, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, float, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, float, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, float, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, float, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, float, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, float, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, float, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
 			}
 			break;
 		}
+
+		case DOUBLE:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, double, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, double, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, double, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, double, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, double, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, double, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, double, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, double, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, double, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, double, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		case UINT8:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, uint8_t, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, uint8_t, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, uint8_t, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, uint8_t, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, uint8_t, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, uint8_t, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, uint8_t, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, uint8_t, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, uint8_t, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, uint8_t, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		case UINT16:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, uint16_t, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, uint16_t, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, uint16_t, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, uint16_t, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, uint16_t, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, uint16_t, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, uint16_t, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, uint16_t, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, uint16_t, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, uint16_t, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		case UINT32:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, uint32_t, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, uint32_t, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, uint32_t, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, uint32_t, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, uint32_t, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, uint32_t, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, uint32_t, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, uint32_t, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, uint32_t, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, uint32_t, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		case UINT64:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, uint64_t, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, uint64_t, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, uint64_t, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, uint64_t, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, uint64_t, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, uint64_t, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, uint64_t, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, uint64_t, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, uint64_t, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, uint64_t, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		case INT8:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, int8_t, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, int8_t, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, int8_t, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, int8_t, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, int8_t, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, int8_t, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, int8_t, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, int8_t, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, int8_t, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, int8_t, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		case INT16:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, int16_t, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, int16_t, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, int16_t, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, int16_t, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, int16_t, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, int16_t, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, int16_t, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, int16_t, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, int16_t, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, int16_t, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		case INT32:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, int32_t, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, int32_t, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, int32_t, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, int32_t, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, int32_t, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, int32_t, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, int32_t, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, int32_t, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, int32_t, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, int32_t, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		case INT64:
+		{
+			switch (to_type)
+			{
+				case UINT8:
+					convert_numeric_to_numeric(column, int64_t, uint8_t);
+					break;
+				case UINT16:
+					convert_numeric_to_numeric(column, int64_t, uint16_t);
+					break;
+				case UINT32:
+					convert_numeric_to_numeric(column, int64_t, uint32_t);
+					break;
+				case UINT64:
+					convert_numeric_to_numeric(column, int64_t, uint64_t);
+					break;
+				case INT8:
+					convert_numeric_to_numeric(column, int64_t, int8_t);
+					break;
+				case INT16:
+					convert_numeric_to_numeric(column, int64_t, int16_t);
+					break;
+				case INT32:
+					convert_numeric_to_numeric(column, int64_t, int32_t);
+					break;
+				case INT64:
+					convert_numeric_to_numeric(column, int64_t, int64_t);
+					break;
+				case FLOAT:
+					convert_numeric_to_numeric(column, int64_t, float);
+					break;
+				case DOUBLE:
+					convert_numeric_to_numeric(column, int64_t, double);
+					break;
+				// does nothing but ignores compiler warning
+				case STRING:
+					break;
+			}
+			break;
+		}
+
+		// do nothing but ignores compiler warnings
+		case STRING:
+			break;
 	}	
 }
