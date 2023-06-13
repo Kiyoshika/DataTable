@@ -464,23 +464,25 @@ bool
 dt_table_rows_equal(
 	const struct DataTable* table1,
 	const size_t row_idx_1,
+  const size_t* const table1_column_indices,
 	const struct DataTable* table2,
-	const size_t row_idx_2)
+	const size_t row_idx_2,
+  const size_t* const table2_column_indices,
+  const size_t n_column_indices)
 {
-	// can't be equal if column sizes are different
-	if (table1->n_columns != table2->n_columns)
-		return false;
-
-	for (size_t i = 0; i < table1->n_columns; ++i)
+	for (size_t i = 0; i < n_column_indices; ++i)
 	{
-		const void* value1 = dt_table_get_value(table1, row_idx_1, i);
-		const void* value2 = dt_table_get_value(table2, row_idx_2, i);
+    const size_t table1_check_idx = table1_column_indices[i];
+    const size_t table2_check_idx = table2_column_indices[i];
+
+		const void* value1 = dt_table_get_value(table1, row_idx_1, table1_check_idx);
+		const void* value2 = dt_table_get_value(table2, row_idx_2, table2_check_idx);
 
 		if (!__two_values_equal(
 					value1, 
-					table1->columns[i].column->type,
+					table1->columns[table1_check_idx].column->type,
 					value2,
-					table2->columns[i].column->type))
+					table2->columns[table2_check_idx].column->type))
 			return false;
 	}
 
@@ -511,22 +513,26 @@ dt_table_distinct(
 	if (!distinct)
 		return NULL;
 
-	struct HashTable* htable = hash_create(table, false);
+	struct HashTable* htable = hash_create(table, false, NULL, 0);
+
+  size_t* table_column_indices = __generate_range(table->n_columns);
 
 	for (size_t i = 0; i < table->n_rows; ++i)
 	{
-		if (!hash_contains(htable, table, i))
+		if (!hash_contains(htable, table, table_column_indices, i))
 		{
 			if (__transfer_row(distinct, table, i) != DT_SUCCESS)
 			{
 				hash_free(&htable);
 				dt_table_free(&distinct);
+        free(table_column_indices);
 				return NULL;
 			}
 			hash_insert(htable, i);
 		}
 	}
 
+  free(table_column_indices);
 	hash_free(&htable);
 	return distinct;
 }
@@ -852,7 +858,7 @@ dt_table_split(
 	
 	
 	// create empty hashtable with current table as a reference
-	struct HashTable* htable = hash_create(table, false);
+	struct HashTable* htable = hash_create(table, false, NULL, 0);
 	if (!htable)
 		return DT_ALLOC_ERROR;
 
@@ -863,12 +869,14 @@ dt_table_split(
 		return DT_ALLOC_ERROR;
 	}
 
+  size_t* table_column_indices = __generate_range(table->n_columns);
+
 	// sample split1 (creating hash table to record which records were used)
 	size_t sampled_rows = 0;
 	while (sampled_rows < n_samples)
 	{
 		size_t random_idx = (size_t)__get_random_index(0, table->n_rows - 1);
-		if (!hash_contains(htable, table, random_idx))
+		if (!hash_contains(htable, table, table_column_indices, random_idx))
 		{
 			__transfer_row(*split1, table, random_idx);
 			hash_insert(htable, random_idx);
@@ -888,13 +896,14 @@ dt_table_split(
 
 	for (size_t i = 0; i < table->n_rows; ++i)
 	{
-		if (!hash_contains(htable, table, i))
+		if (!hash_contains(htable, table, table_column_indices, i))
 		{
 			__transfer_row(*split2, table, i);
 			hash_insert(htable, i);
 		}
 	}
 
+  free(table_column_indices);
 	hash_free(&htable);
 
 	return DT_SUCCESS;
@@ -995,4 +1004,74 @@ dt_table_cast_columns(
 	}
 
 	return DT_SUCCESS;
+}
+
+struct DataTable*
+dt_table_join_inner(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char (*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns)
+{
+  if (!left_table || !right_table)
+    return NULL;
+
+  size_t* left_table_indices = NULL;
+  size_t* right_table_indices = NULL;
+  struct HashTable* left_table_hash = NULL;
+  struct HashTable* right_table_hash = NULL;
+  struct DataTable* join_table = NULL;
+
+  left_table_indices = __get_multiple_column_indices(left_table, join_columns, n_join_columns);
+  if (!left_table_indices)
+    goto cleanup;
+
+  right_table_indices = __get_multiple_column_indices(right_table, join_columns, n_join_columns);
+  if (!right_table_indices)
+    goto cleanup;
+
+  left_table_hash = hash_create(left_table, true, left_table_indices, n_join_columns);
+  if (!left_table_hash)
+    goto cleanup;
+
+  right_table_hash = hash_create(right_table, true, right_table_indices, n_join_columns);
+  if (!right_table_hash)
+    goto cleanup;
+
+  char (*combined_columns)[MAX_COL_LEN] = calloc(left_table->n_columns + right_table->n_columns, sizeof(*combined_columns));
+  if (!combined_columns)
+    goto cleanup;
+
+  enum data_type_e* combined_types = calloc(left_table->n_columns + right_table->n_columns, sizeof(*combined_types));
+  if (!combined_types)
+    goto cleanup;
+
+  for (size_t i = 0; i < left_table->n_columns; ++i)
+  {
+    combined_types[i] = left_table->columns[i].column->type;
+    memcpy(combined_columns[i], left_table->columns[i].name, MAX_COL_LEN);
+  }
+  for (size_t i = left_table->n_columns; i < left_table->n_columns + right_table->n_columns; ++i)
+  {
+    combined_types[i] = right_table->columns[i].column->type;
+    memcpy(combined_columns[i], right_table->columns[i].name, MAX_COL_LEN);
+  }
+
+  // TODO: finish
+  for (size_t i = 0; i < right_table->n_rows; ++i)
+  {
+    // these are all the indices we need to bring from table2 into table 1
+    if (hash_contains(left_table_hash, right_table, right_table_indices, i))
+    {
+      printf("%zu\n", i);
+    }
+  }
+
+cleanup:
+  free(left_table_indices);
+  free(right_table_indices);
+  hash_free(&left_table_hash);
+  hash_free(&right_table_hash);
+  dt_table_free(&join_table);
+  return NULL;
 }

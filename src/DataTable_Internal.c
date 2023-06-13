@@ -8,6 +8,19 @@
 #include <time.h>
 #include <ctype.h>
 
+static size_t*
+__generate_range(
+  const size_t upper_bound_exclusive)
+{
+  size_t* values = calloc(upper_bound_exclusive, sizeof(size_t));
+  if (!values)
+    return NULL;
+
+  for (size_t i = 0; i < upper_bound_exclusive; ++i)
+    values[i] = i;
+
+  return values;
+}
 
 // get the column index for a specific column name.
 // if column name is not found, [is_error] is set to true.
@@ -752,7 +765,7 @@ __sample_without_replacement(
 		return NULL;
 
 	// create empty hashtable with current table as a reference
-	struct HashTable* htable = hash_create(table, false);
+	struct HashTable* htable = hash_create(table, false, NULL, 0);
 	if (!htable)
 		return NULL;
 
@@ -761,11 +774,15 @@ __sample_without_replacement(
 	if (!samples)
 		return NULL;
 
+  size_t* table_column_indices = __generate_range(table->n_columns);
+  if (!table_column_indices)
+    return NULL;
+
 	size_t sampled_rows = 0;
 	while (sampled_rows < n_samples)
 	{
 		size_t random_idx = (size_t)__get_random_index(0, table->n_rows - 1);
-		if (!hash_contains(htable, table, random_idx))
+		if (!hash_contains(htable, table, table_column_indices, random_idx))
 		{
 			__transfer_row(samples, table, random_idx);
 			hash_insert(htable, random_idx);
@@ -773,6 +790,7 @@ __sample_without_replacement(
 		}
 	}
 
+  free(table_column_indices);
 	hash_free(&htable);
 
 	return samples;
@@ -1133,3 +1151,5 @@ __infer_csv_types(
 	// take inferred types and cast entire table
 	__convert_csv_column_types_from_string(table);
 }
+
+

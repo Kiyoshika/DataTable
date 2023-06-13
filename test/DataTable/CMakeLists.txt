@@ -118,3 +118,8 @@ add_executable(dt_table_cast_columns dt_table_cast_columns.c)
 target_include_directories(dt_table_cast_columns PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_cast_columns datatable)
 add_test(NAME dt_table_cast_columns COMMAND dt_table_cast_columns)
+
+add_executable(dt_table_join dt_table_join.c)
+target_include_directories(dt_table_join PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_join datatable)
+add_test(NAME dt_table_join COMMAND dt_table_join)

@@ -214,8 +214,11 @@ bool
 dt_table_rows_equal(
 	const struct DataTable* table1,
 	const size_t row_idx_1,
+  const size_t* const table1_column_indices,
 	const struct DataTable* table2,
-	const size_t row_idx_2);	
+	const size_t row_idx_2,
+  const size_t* const table2_column_indices,
+  const size_t n_column_indices);	
 
 // return a newly-allocated table with all the distinct rows.
 // returns NULL on failure (e.g., out of memory)
@@ -423,5 +426,12 @@ dt_table_cast_columns(
 	const size_t n_columns,
 	const char (*column_names)[MAX_COL_LEN],
 	const enum data_type_e* new_column_types);
+
+struct DataTable*
+dt_table_join_inner(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char (*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns);
 
 #endif

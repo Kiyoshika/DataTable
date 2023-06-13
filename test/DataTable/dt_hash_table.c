@@ -22,7 +22,7 @@ int main()
 	set2 = 21.21f;
 	dt_table_insert_row(table, 2, &set1, &set2);
 
-	struct HashTable* htable = hash_create(table, true);
+	struct HashTable* htable = hash_create(table, true, NULL, 0);
 
 	struct DataTable* table2 = dt_table_copy_skeleton(table);
 
@@ -34,15 +34,19 @@ int main()
 	set2 = 12.52f;
 	dt_table_insert_row(table2, 2, &set1, &set2);
 
+  size_t* table2_column_indices = calloc(table2->n_columns, sizeof(size_t));
+  for (size_t i = 0; i < table2->n_columns; ++i)
+    table2_column_indices[i] = i;
+
 	// THIS ROW SHOULD NOT BE FOUND IN HASHTABLE
-	if (hash_contains(htable, table2, 0))
+	if (hash_contains(htable, table2, table2_column_indices, 0))
 	{
 		fprintf(stderr, "First row of table2 should NOT be in hashmap.\n");
 		goto cleanup;
 	}
 
 	// THIS ROW SHOULD BE FOUND
-	if (!hash_contains(htable, table2, 1))
+	if (!hash_contains(htable, table2, table2_column_indices, 1))
 	{
 		fprintf(stderr, "Second row of table2 SHOULD be in hashmap but was not found.\n");
 		goto cleanup;
@@ -53,6 +57,7 @@ cleanup:
 	dt_table_free(&table);
 	dt_table_free(&table2);
 	hash_free(&htable);
+  free(table2_column_indices);
 
 	return status;
 }
