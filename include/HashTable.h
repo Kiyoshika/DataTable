@@ -68,6 +68,10 @@ hash_insert(
 // used to only compare (with dt_table_rows_equal) a subset of columns (or all columns)
 // which is used particularly for computing joins between tables (but may have other use cases).
 //
+// if a row is found, the original row index from the table stored within the hash table
+// is written to [htable_row_idx]. This is mainly used for table joins. However, if you
+// don't need this parameter, you can safely pass NULL and it will be ignored
+//
 // returns true if row is found and all (specified) columns are equal.
 // returns false otherwise.
 bool
@@ -75,6 +79,7 @@ hash_contains(
 	const struct HashTable* const htable,
 	const struct DataTable* const table,
   const size_t* const table_column_indices,
+  size_t* htable_row_idx,
 	const size_t row_idx);
 
 void

@@ -519,7 +519,7 @@ dt_table_distinct(
 
 	for (size_t i = 0; i < table->n_rows; ++i)
 	{
-		if (!hash_contains(htable, table, table_column_indices, i))
+		if (!hash_contains(htable, table, table_column_indices, NULL, i))
 		{
 			if (__transfer_row(distinct, table, i) != DT_SUCCESS)
 			{
@@ -876,7 +876,7 @@ dt_table_split(
 	while (sampled_rows < n_samples)
 	{
 		size_t random_idx = (size_t)__get_random_index(0, table->n_rows - 1);
-		if (!hash_contains(htable, table, table_column_indices, random_idx))
+		if (!hash_contains(htable, table, table_column_indices, NULL, random_idx))
 		{
 			__transfer_row(*split1, table, random_idx);
 			hash_insert(htable, random_idx);
@@ -896,7 +896,7 @@ dt_table_split(
 
 	for (size_t i = 0; i < table->n_rows; ++i)
 	{
-		if (!hash_contains(htable, table, table_column_indices, i))
+		if (!hash_contains(htable, table, table_column_indices, NULL, i))
 		{
 			__transfer_row(*split2, table, i);
 			hash_insert(htable, i);
@@ -1053,25 +1053,50 @@ dt_table_join_inner(
   }
   for (size_t i = left_table->n_columns; i < left_table->n_columns + right_table->n_columns; ++i)
   {
-    combined_types[i] = right_table->columns[i].column->type;
-    memcpy(combined_columns[i], right_table->columns[i].name, MAX_COL_LEN);
+    combined_types[i] = right_table->columns[i - left_table->n_columns].column->type;
+    memcpy(combined_columns[i], right_table->columns[i - left_table->n_columns].name, MAX_COL_LEN);
   }
 
-  // TODO: finish
+  join_table = dt_table_create(left_table->n_columns + right_table->n_columns, combined_columns, combined_types);
+  if (!join_table)
+    goto cleanup;
+  
+  free(combined_columns);
+  free(combined_types);
+
+  size_t current_insert_row = 0;
+  size_t original_row_idx = 0;
   for (size_t i = 0; i < right_table->n_rows; ++i)
   {
-    // these are all the indices we need to bring from table2 into table 1
-    if (hash_contains(left_table_hash, right_table, right_table_indices, i))
+    if (hash_contains(left_table_hash, right_table, right_table_indices, &original_row_idx, i))
     {
-      printf("%zu\n", i);
+      dt_table_insert_empty_row(join_table);
+
+      // copy contents from table1 & table2 in order
+      for (size_t col = 0; col < left_table->n_columns; ++col)
+      {
+        const void* value = dt_table_get_value(left_table, original_row_idx, col);
+        dt_table_set_value(join_table, current_insert_row, col, value);
+      }
+
+      for (size_t col = left_table->n_columns; col < left_table->n_columns + right_table->n_columns; ++col)
+      {
+        const void* value = dt_table_get_value(right_table, i, col - left_table->n_columns);
+        dt_table_set_value(join_table, current_insert_row, col, value);
+      }
+      current_insert_row++;
     }
   }
 
+  goto success; // skip freeing table
+
 cleanup:
-  free(left_table_indices);
-  free(right_table_indices);
+  dt_table_free(&join_table);
+success:
+  //free(left_table_indices);
+  //free(right_table_indices);
   hash_free(&left_table_hash);
   hash_free(&right_table_hash);
-  dt_table_free(&join_table);
-  return NULL;
+  return join_table;
+
 }

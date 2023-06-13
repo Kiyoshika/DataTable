@@ -39,14 +39,14 @@ int main()
     table2_column_indices[i] = i;
 
 	// THIS ROW SHOULD NOT BE FOUND IN HASHTABLE
-	if (hash_contains(htable, table2, table2_column_indices, 0))
+	if (hash_contains(htable, table2, table2_column_indices, NULL, 0))
 	{
 		fprintf(stderr, "First row of table2 should NOT be in hashmap.\n");
 		goto cleanup;
 	}
 
 	// THIS ROW SHOULD BE FOUND
-	if (!hash_contains(htable, table2, table2_column_indices, 1))
+	if (!hash_contains(htable, table2, table2_column_indices, NULL, 1))
 	{
 		fprintf(stderr, "Second row of table2 SHOULD be in hashmap but was not found.\n");
 		goto cleanup;

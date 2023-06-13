@@ -187,24 +187,31 @@ hash_contains(
 	const struct HashTable* const htable,
 	const struct DataTable* const table,
   const size_t* const table_column_indices,
-	const size_t row_idx)
+  size_t* htable_row_idx,
+	const size_t table_row_idx)
 {
 	if (htable->is_empty)
 		return false;
 
-	size_t hash_idx = hash_function(htable, table, row_idx);
+	size_t hash_idx = hash_function(htable, table, table_row_idx);
 	struct Bin* bin = &htable->bin[hash_idx];
+  
 	
 	for (size_t i = 0; i < bin->n_values; ++i)
+  {
+    if (htable_row_idx)
+      *htable_row_idx = bin->value[i];
+
 		if (dt_table_rows_equal(
           table, 
-          row_idx, 
+          table_row_idx, 
           table_column_indices,
           htable->table, 
           bin->value[i],
           htable->column_indices,
           htable->n_column_indices))
 			return true;
+  }
 
 	return false;
 }	
