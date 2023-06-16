@@ -13,11 +13,11 @@ hash_function(
 {
 	size_t hash_value = 0;
 
-	for (size_t i = 0; i < table->n_columns; ++i)
+	for (size_t i = 0; i < htable->n_column_indices; ++i)
 	{
 		const void* value = dt_table_get_value(table, row_idx, i);
 
-		switch (table->columns[i].column->type)
+		switch (table->columns[htable->column_indices[i]].column->type)
 		{
 			case UINT8:
 				generic_add(&hash_value, value, uint8_t);
@@ -105,11 +105,31 @@ hash_insert(
 struct HashTable*
 hash_create(
 	const struct DataTable* const table,
-	const bool insert_all_rows)
+	const bool insert_all_rows,
+  size_t* column_indices,
+  size_t n_column_indices)
 {
 	struct HashTable* htable = malloc(sizeof(*htable));
 	if (!htable)
 		return NULL;
+
+  // if user passes NULL, it defaults to use all columns
+  // otherwise we copy the contents of [column_indices]
+  size_t n_indices = column_indices == NULL ? table->n_columns : n_column_indices;
+  htable->n_column_indices = n_indices; 
+  htable->column_indices = column_indices; // transfer ownership
+
+  if (!column_indices)
+  {
+    htable->column_indices = calloc(n_indices, sizeof(size_t));
+    if (!htable->column_indices)
+    {
+      free(htable);
+      return NULL;
+    }
+    for (size_t i = 0; i < n_indices; ++i)
+      htable->column_indices[i] = i;
+  }
 
 	// set a shared pointer (this does NOT get free'd)
 	// only used as a reference when adding items to bins etc.
@@ -137,6 +157,7 @@ hash_create(
 			for (size_t k = 0; k < i; ++k)
 				free(htable->bin[i].value);
 			free(htable->bin);
+      free(htable->column_indices);
 			free(htable);
 			return NULL;
 		}
@@ -165,17 +186,32 @@ bool
 hash_contains(
 	const struct HashTable* const htable,
 	const struct DataTable* const table,
-	const size_t row_idx)
+  const size_t* const table_column_indices,
+  size_t* htable_row_idx,
+	const size_t table_row_idx)
 {
 	if (htable->is_empty)
 		return false;
 
-	size_t hash_idx = hash_function(htable, table, row_idx);
+	size_t hash_idx = hash_function(htable, table, table_row_idx);
 	struct Bin* bin = &htable->bin[hash_idx];
+  
 	
 	for (size_t i = 0; i < bin->n_values; ++i)
-		if (dt_table_rows_equal(table, row_idx, htable->table, bin->value[i]))
+  {
+    if (htable_row_idx)
+      *htable_row_idx = bin->value[i];
+
+		if (dt_table_rows_equal(
+          table, 
+          table_row_idx, 
+          table_column_indices,
+          htable->table, 
+          bin->value[i],
+          htable->column_indices,
+          htable->n_column_indices))
 			return true;
+  }
 
 	return false;
 }	
@@ -193,6 +229,9 @@ hash_free(
 
 	free((*htable)->bin);
 	(*htable)->bin = NULL;
+
+  free((*htable)->column_indices);
+  (*htable)->column_indices = NULL;
 
 	free(*htable);
 	*htable = NULL;

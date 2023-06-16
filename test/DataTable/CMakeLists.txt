@@ -118,3 +118,23 @@ add_executable(dt_table_cast_columns dt_table_cast_columns.c)
 target_include_directories(dt_table_cast_columns PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_cast_columns datatable)
 add_test(NAME dt_table_cast_columns COMMAND dt_table_cast_columns)
+
+add_executable(dt_table_join_inner dt_table_join_inner.c)
+target_include_directories(dt_table_join_inner PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_join_inner datatable)
+add_test(NAME dt_table_join_inner COMMAND dt_table_join_inner)
+
+add_executable(dt_table_join_left dt_table_join_left.c)
+target_include_directories(dt_table_join_left PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_join_left datatable)
+add_test(NAME dt_table_join_left COMMAND dt_table_join_left)
+
+add_executable(dt_table_join_right dt_table_join_right.c)
+target_include_directories(dt_table_join_right PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_join_right datatable)
+add_test(NAME dt_table_join_right COMMAND dt_table_join_right)
+
+add_executable(dt_table_join_full dt_table_join_full.c)
+target_include_directories(dt_table_join_full PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_join_full datatable)
+add_test(NAME dt_table_join_full COMMAND dt_table_join_full)
