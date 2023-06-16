@@ -1006,6 +1006,97 @@ dt_table_cast_columns(
 	return DT_SUCCESS;
 }
 
+static struct DataTable*
+__dt_setup_join(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char(*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns,
+  size_t** left_table_indices,
+  size_t** right_table_indices,
+  struct HashTable** left_table_hash,
+  struct HashTable** right_table_hash)
+{
+  struct DataTable* join_table = NULL;
+  char (*combined_columns)[MAX_COL_LEN] = NULL;
+  enum data_type_e* combined_types = NULL;
+
+  *left_table_indices = __get_multiple_column_indices(left_table, join_columns, n_join_columns);
+  if (!*left_table_indices)
+    goto cleanup;
+
+  *right_table_indices = __get_multiple_column_indices(right_table, join_columns, n_join_columns);
+  if (!*right_table_indices)
+    goto cleanup;
+
+  *left_table_hash = hash_create(left_table, true, *left_table_indices, n_join_columns);
+  if (!*left_table_hash)
+    goto cleanup;
+
+  *right_table_hash = hash_create(right_table, true, *right_table_indices, n_join_columns);
+  if (!*right_table_hash)
+    goto cleanup;
+
+  combined_columns = calloc(left_table->n_columns + right_table->n_columns, sizeof(*combined_columns));
+  if (!combined_columns)
+    goto cleanup;
+
+  combined_types = calloc(left_table->n_columns + right_table->n_columns, sizeof(*combined_types));
+  if (!combined_types)
+    goto cleanup;
+
+  for (size_t i = 0; i < left_table->n_columns; ++i)
+  {
+    combined_types[i] = left_table->columns[i].column->type;
+    memcpy(combined_columns[i], left_table->columns[i].name, MAX_COL_LEN);
+  }
+
+  for (size_t i = left_table->n_columns; i < left_table->n_columns + right_table->n_columns; ++i)
+  {
+    combined_types[i] = right_table->columns[i - left_table->n_columns].column->type;
+    memcpy(combined_columns[i], right_table->columns[i - left_table->n_columns].name, MAX_COL_LEN);
+  }
+
+  join_table = dt_table_create(left_table->n_columns + right_table->n_columns, combined_columns, combined_types);
+  if (!join_table)
+    goto cleanup;
+
+  free(combined_columns);
+  free(combined_types);
+
+  goto success;
+
+cleanup:
+  dt_table_free(&join_table);
+success:
+  return join_table;
+}
+
+static void
+__dt_insert_row_from_two_tables(
+  const struct DataTable* table1,
+  const size_t table1_row_idx,
+  const struct DataTable* table2,
+  const size_t table2_row_idx,
+  struct DataTable* target_table,
+  const size_t target_row_idx)
+{
+  dt_table_insert_empty_row(target_table);
+
+  // copy contents from table1 & table2 in order
+  for (size_t col = 0; col < table1->n_columns; ++col)
+  {
+    const void* value = dt_table_get_value(table1, table1_row_idx, col);
+    dt_table_set_value(target_table, target_row_idx, col, value);
+  }
+
+  for (size_t col = table1->n_columns; col < table1->n_columns + table2->n_columns; ++col)
+  {
+    const void* value = dt_table_get_value(table2, table2_row_idx, col - table1->n_columns);
+    dt_table_set_value(target_table, target_row_idx, col, value);
+  }
+}
+
 struct DataTable*
 dt_table_join_inner(
   const struct DataTable* const left_table,
@@ -1020,49 +1111,20 @@ dt_table_join_inner(
   size_t* right_table_indices = NULL;
   struct HashTable* left_table_hash = NULL;
   struct HashTable* right_table_hash = NULL;
-  struct DataTable* join_table = NULL;
 
-  left_table_indices = __get_multiple_column_indices(left_table, join_columns, n_join_columns);
-  if (!left_table_indices)
-    goto cleanup;
+  struct DataTable* join_table = 
+    __dt_setup_join(
+        left_table,
+        right_table,
+        join_columns,
+        n_join_columns,
+        &right_table_indices,
+        &left_table_indices,
+        &left_table_hash,
+        &right_table_hash);
 
-  right_table_indices = __get_multiple_column_indices(right_table, join_columns, n_join_columns);
-  if (!right_table_indices)
-    goto cleanup;
-
-  left_table_hash = hash_create(left_table, true, left_table_indices, n_join_columns);
-  if (!left_table_hash)
-    goto cleanup;
-
-  right_table_hash = hash_create(right_table, true, right_table_indices, n_join_columns);
-  if (!right_table_hash)
-    goto cleanup;
-
-  char (*combined_columns)[MAX_COL_LEN] = calloc(left_table->n_columns + right_table->n_columns, sizeof(*combined_columns));
-  if (!combined_columns)
-    goto cleanup;
-
-  enum data_type_e* combined_types = calloc(left_table->n_columns + right_table->n_columns, sizeof(*combined_types));
-  if (!combined_types)
-    goto cleanup;
-
-  for (size_t i = 0; i < left_table->n_columns; ++i)
-  {
-    combined_types[i] = left_table->columns[i].column->type;
-    memcpy(combined_columns[i], left_table->columns[i].name, MAX_COL_LEN);
-  }
-  for (size_t i = left_table->n_columns; i < left_table->n_columns + right_table->n_columns; ++i)
-  {
-    combined_types[i] = right_table->columns[i - left_table->n_columns].column->type;
-    memcpy(combined_columns[i], right_table->columns[i - left_table->n_columns].name, MAX_COL_LEN);
-  }
-
-  join_table = dt_table_create(left_table->n_columns + right_table->n_columns, combined_columns, combined_types);
   if (!join_table)
-    goto cleanup;
-  
-  free(combined_columns);
-  free(combined_types);
+    return NULL;
 
   size_t current_insert_row = 0;
   size_t original_row_idx = 0;
@@ -1070,33 +1132,20 @@ dt_table_join_inner(
   {
     if (hash_contains(left_table_hash, right_table, right_table_indices, &original_row_idx, i))
     {
-      dt_table_insert_empty_row(join_table);
+      __dt_insert_row_from_two_tables(
+          left_table, 
+          original_row_idx, 
+          right_table, 
+          i, 
+          join_table, 
+          current_insert_row);
 
-      // copy contents from table1 & table2 in order
-      for (size_t col = 0; col < left_table->n_columns; ++col)
-      {
-        const void* value = dt_table_get_value(left_table, original_row_idx, col);
-        dt_table_set_value(join_table, current_insert_row, col, value);
-      }
-
-      for (size_t col = left_table->n_columns; col < left_table->n_columns + right_table->n_columns; ++col)
-      {
-        const void* value = dt_table_get_value(right_table, i, col - left_table->n_columns);
-        dt_table_set_value(join_table, current_insert_row, col, value);
-      }
       current_insert_row++;
     }
   }
 
-  goto success; // skip freeing table
-
-cleanup:
-  dt_table_free(&join_table);
-success:
-  //free(left_table_indices);
-  //free(right_table_indices);
   hash_free(&left_table_hash);
   hash_free(&right_table_hash);
-  return join_table;
 
+  return join_table;
 }
