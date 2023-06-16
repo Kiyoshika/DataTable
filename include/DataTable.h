@@ -394,7 +394,7 @@ dt_table_read_csv(
 //
 // returns DT_SIZE_MISMATCH if rows are different
 // returns DT_ALLOC_ERROR if couldn't allocate enough memory
-// returns DT_DUPLICATE if column name already exists
+// returns DT_DUPLICATE if column name already exists (only if allow_duplicate_column_names = false)
 // returns DT_SUCCESS otherwise
 enum status_code_e
 dt_table_append_by_column(
@@ -407,6 +407,7 @@ dt_table_append_by_column(
 //
 // returns DT_SIZE_MISMATCH if any of the tables' rows are different
 // returns DT_ALLOC_ERROR if couldn't allocate enough memory
+// returns DT_DUPLICATE if column name already exists (only if allow_duplicate_column_names = false)
 // returns DT_SUCCESS otherwise
 enum status_code_e
 dt_table_append_multiple_by_column(
@@ -434,4 +435,24 @@ dt_table_join_inner(
   const char (*join_columns)[MAX_COL_LEN],
   const size_t n_join_columns);
 
+struct DataTable*
+dt_table_join_left(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char (*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns);
+
+struct DataTable*
+dt_table_join_right(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char (*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns);
+
+struct DataTable*
+dt_table_join_full(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char (*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns);
 #endif

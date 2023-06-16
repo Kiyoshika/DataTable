@@ -546,12 +546,10 @@ dt_table_insert_column(
 	if (table->n_rows != column->n_values)
 		return DT_SIZE_MISMATCH;
 
-	// check to make sure column name doesn't already exist
-	// (returns true if column isn't found, so we want to check if it's false)
-	bool is_error = false;
-	__get_column_index(table, column_name, &is_error);
-	if (!is_error)
-		return DT_DUPLICATE;
+  bool is_success = false;
+  __get_column_index(table, column_name, &is_success);
+  if (!is_success)
+    return DT_DUPLICATE;
 
 	struct DataColumn* column_copy = dt_column_copy(column);
 	if (!column_copy)
@@ -572,8 +570,6 @@ dt_table_insert_column(
 	newpair.column = column_copy;
 
 	memcpy(&table->columns[table->n_columns++], &newpair, sizeof(struct ColumnPair));
-
-	
 
 	return DT_SUCCESS;
 }
@@ -1076,23 +1072,31 @@ static void
 __dt_insert_row_from_two_tables(
   const struct DataTable* table1,
   const size_t table1_row_idx,
+  const size_t table1_columns,
   const struct DataTable* table2,
   const size_t table2_row_idx,
+  const size_t table2_columns,
   struct DataTable* target_table,
   const size_t target_row_idx)
 {
   dt_table_insert_empty_row(target_table);
 
   // copy contents from table1 & table2 in order
-  for (size_t col = 0; col < table1->n_columns; ++col)
+  for (size_t col = 0; col < table1_columns; ++col)
   {
-    const void* value = dt_table_get_value(table1, table1_row_idx, col);
+    const void* value = NULL;
+    if (table1)
+      value = dt_table_get_value(table1, table1_row_idx, col);
+
     dt_table_set_value(target_table, target_row_idx, col, value);
   }
 
-  for (size_t col = table1->n_columns; col < table1->n_columns + table2->n_columns; ++col)
+  for (size_t col = table1_columns; col < table1_columns + table2_columns; ++col)
   {
-    const void* value = dt_table_get_value(table2, table2_row_idx, col - table1->n_columns);
+    const void* value = NULL;
+    if (table2)
+      value = dt_table_get_value(table2, table2_row_idx, col - table1_columns);
+
     dt_table_set_value(target_table, target_row_idx, col, value);
   }
 }
@@ -1135,8 +1139,10 @@ dt_table_join_inner(
       __dt_insert_row_from_two_tables(
           left_table, 
           original_row_idx, 
+          left_table->n_columns,
           right_table, 
           i, 
+          right_table->n_columns,
           join_table, 
           current_insert_row);
 
@@ -1148,4 +1154,173 @@ dt_table_join_inner(
   hash_free(&right_table_hash);
 
   return join_table;
+}
+
+struct DataTable*
+dt_table_join_left(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char (*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns)
+{
+  if (!left_table || !right_table)
+    return NULL;
+
+  size_t* left_table_indices = NULL;
+  size_t* right_table_indices = NULL;
+  struct HashTable* left_table_hash = NULL;
+  struct HashTable* right_table_hash = NULL;
+
+  struct DataTable* join_table = 
+    __dt_setup_join(
+        left_table,
+        right_table,
+        join_columns,
+        n_join_columns,
+        &right_table_indices,
+        &left_table_indices,
+        &left_table_hash,
+        &right_table_hash);
+
+  if (!join_table)
+    return NULL;
+
+  size_t current_insert_row = 0;
+  size_t hash_table_row_idx = 0;
+  for (size_t i = 0; i < left_table->n_rows; ++i)
+  {
+    if (hash_contains(right_table_hash, left_table, left_table_indices, &hash_table_row_idx, i))
+    {
+      __dt_insert_row_from_two_tables(
+          left_table, 
+          i, 
+          left_table->n_columns,
+          right_table, 
+          hash_table_row_idx, 
+          right_table->n_columns,
+          join_table, 
+          current_insert_row);
+    }
+    else
+    {
+      __dt_insert_row_from_two_tables(
+          left_table, 
+          i, 
+          left_table->n_columns,
+          NULL, 
+          hash_table_row_idx, 
+          right_table->n_columns,
+          join_table, 
+          current_insert_row);
+    }
+    current_insert_row++;
+  }
+
+  hash_free(&left_table_hash);
+  hash_free(&right_table_hash);
+
+  return join_table;
+}
+
+struct DataTable*
+dt_table_join_right(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char (*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns)
+{
+  if (!left_table || !right_table)
+    return NULL;
+
+  size_t* left_table_indices = NULL;
+  size_t* right_table_indices = NULL;
+  struct HashTable* left_table_hash = NULL;
+  struct HashTable* right_table_hash = NULL;
+
+  struct DataTable* join_table = 
+    __dt_setup_join(
+        left_table,
+        right_table,
+        join_columns,
+        n_join_columns,
+        &right_table_indices,
+        &left_table_indices,
+        &left_table_hash,
+        &right_table_hash);
+
+  if (!join_table)
+    return NULL;
+
+  size_t current_insert_row = 0;
+  size_t hash_table_row_idx = 0;
+  for (size_t i = 0; i < right_table->n_rows; ++i)
+  {
+    if (hash_contains(left_table_hash, right_table, right_table_indices, &hash_table_row_idx, i))
+    {
+      __dt_insert_row_from_two_tables(
+          left_table, 
+          hash_table_row_idx, 
+          left_table->n_columns,
+          right_table, 
+          i, 
+          right_table->n_columns,
+          join_table, 
+          current_insert_row);
+    }
+    else
+    {
+      __dt_insert_row_from_two_tables(
+          NULL, 
+          hash_table_row_idx, 
+          left_table->n_columns,
+          right_table, 
+          i, 
+          right_table->n_columns,
+          join_table, 
+          current_insert_row);
+    }
+    current_insert_row++;
+  }
+
+  hash_free(&left_table_hash);
+  hash_free(&right_table_hash);
+
+  return join_table;
+}
+
+struct DataTable*
+dt_table_join_full(
+  const struct DataTable* const left_table,
+  const struct DataTable* const right_table,
+  const char (*join_columns)[MAX_COL_LEN],
+  const size_t n_join_columns)
+{
+  if (!left_table || !right_table)
+    return NULL;
+
+  struct DataTable* left_join 
+    = dt_table_join_left(left_table, right_table, join_columns, n_join_columns);
+
+  if (!left_join)
+    return NULL;
+
+  struct DataTable* right_join
+    = dt_table_join_right(left_table, right_table, join_columns, n_join_columns);
+
+  if (!right_join)
+  {
+    dt_table_free(&left_join);
+    return NULL;
+  }
+
+  if (dt_table_append_by_row(left_join, right_join) != DT_SUCCESS)
+  {
+    dt_table_free(&left_join);
+    dt_table_free(&right_join);
+    return NULL;
+  }
+
+  dt_table_free(&right_join);
+
+  return left_join;
 }
