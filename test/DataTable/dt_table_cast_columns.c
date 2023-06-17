@@ -5,7 +5,7 @@ int main()
 {
 	int status = -1;
 	
-	char colnames[3][MAX_COL_LEN] = { "col1", "col2", "col3" };
+	char colnames[3][DT_MAX_COL_LEN] = { "col1", "col2", "col3" };
 	enum data_type_e types[3] = { INT32, FLOAT, STRING };
 	struct DataTable* table = dt_table_create(3, colnames, types);
 
@@ -30,7 +30,7 @@ int main()
 	// cast FLOAT -> UINT8 
 	// cast STRING -> DOUBLE
 	dt_table_cast_columns(table, 3,
-			(const char[3][MAX_COL_LEN]){ "col1", "col2", "col3" },
+			(const char[3][DT_MAX_COL_LEN]){ "col1", "col2", "col3" },
 			(const enum data_type_e[3]){ STRING, UINT8, DOUBLE });
 
 	// VERIFY NEW COLUMN TYPES

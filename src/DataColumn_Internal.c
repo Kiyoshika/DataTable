@@ -12,12 +12,12 @@
 #define integer_to_string(number, char_buff) \
     while (number >= 10) { \
         char num_char = (number % 10) + '0'; \
-        strncat(char_buff, &num_char, 1); \
+        strncat(char_buff, &num_char, 2); \
         number /= 10; \
     } \
     { \
         char num_char = number + '0'; \
-        strncat(char_buff, &num_char, 1); \
+        strncat(char_buff, &num_char, 2); \
     }
 
 // a macro the wraps the above macro to take

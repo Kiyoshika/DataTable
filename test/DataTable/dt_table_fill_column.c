@@ -5,7 +5,7 @@ int main()
 {
 	int status = -1;
 
-	char colnames[1][MAX_COL_LEN] = { "col1" };
+	char colnames[1][DT_MAX_COL_LEN] = { "col1" };
 	enum data_type_e types[1] = { INT32 };
 	struct DataTable* table = dt_table_create(1, colnames, types);
 

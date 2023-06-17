@@ -11,11 +11,11 @@
 #include "DataColumn.h"
 #include "StatusCodes.h"
 
-#define MAX_COL_LEN 101
+#define DT_MAX_COL_LEN 101
 
 struct ColumnPair
 {
-	char name[MAX_COL_LEN];
+	char name[DT_MAX_COL_LEN];
 	struct DataColumn* column;
 };
 
@@ -33,7 +33,7 @@ struct DataTable
 struct DataTable*
 dt_table_create(
 	const size_t n_columns,
-	const char (*column_names)[MAX_COL_LEN],
+	const char (*column_names)[DT_MAX_COL_LEN],
 	const enum data_type_e* const data_types);
 
 // free memory allocated by table (also frees the underlying columns)
@@ -90,7 +90,7 @@ struct DataTable*
 dt_table_select(
 	const struct DataTable* const table,
 	const size_t n_columns,
-	const char (*columns)[MAX_COL_LEN]);
+	const char (*columns)[DT_MAX_COL_LEN]);
 
 // copy the "skeleton" of a table (column names and types but NOT the data).
 // this is mainly used internally but could be used for very specific use cases.
@@ -106,8 +106,8 @@ struct DataTable*
 dt_table_filter_by_name(
 	const struct DataTable* const table,
 	const char* const column,
-	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data));
+	bool (*filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter multiple columns specified by [column_names] and return a
 // (newly-allocated) table containing the rows where AT LEAST ONE COLUMN
@@ -116,10 +116,10 @@ dt_table_filter_by_name(
 struct DataTable*
 dt_table_filter_OR_by_name(
 	const struct DataTable* const table,
-	const char(*column_names)[MAX_COL_LEN],
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data));
+	const char(*column_names)[DT_MAX_COL_LEN],
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter multiple columns specified by [column_names] and return a
 // (newly-allocated) table containing the rows where ALL COLUMNS matched 
@@ -128,10 +128,10 @@ dt_table_filter_OR_by_name(
 struct DataTable*
 dt_table_filter_AND_by_name(
 	const struct DataTable* const table,
-	const char(*column_names)[MAX_COL_LEN],
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data));
+	const char(*column_names)[DT_MAX_COL_LEN],
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter a single column by index and return a (newly-allocated) table
 // containing the rows that matched the filter callback.
@@ -140,8 +140,8 @@ struct DataTable*
 dt_table_filter_by_idx(
 	const struct DataTable* const table,
 	const size_t column_idx,
-	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data));
+	bool (*filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter multiple columns by index and return a (newly-allocated) table
 // containing the rows where matched AT LEAST ONE COLUMN
@@ -151,10 +151,10 @@ dt_table_filter_by_idx(
 struct DataTable*
 dt_table_filter_OR_by_idx(
 	const struct DataTable* const table,
-	const size_t* column_indices,
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data));
+	const size_t* column_indices,
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter multiple columns by index and return a (newly-allocated) table
 // containing the rows where ALL COLUMNS matched the filter callback
@@ -163,10 +163,10 @@ dt_table_filter_OR_by_idx(
 struct DataTable*
 dt_table_filter_AND_by_idx(
 	const struct DataTable* const table,
-	const size_t* column_indices,
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data));
+	const size_t* column_indices,
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // return a pointer to a column (NOT a copy).
 // returns NULL if column is not found.
@@ -253,7 +253,7 @@ enum status_code_e
 dt_table_drop_columns_by_name(
 	struct DataTable* table,
 	const size_t n_columns,
-	const char (*columns)[MAX_COL_LEN]);
+	const char (*columns)[DT_MAX_COL_LEN]);
 
 // drop any columns containing at least one NULL value in a row.
 // modifies the table inplace
@@ -283,7 +283,7 @@ dt_table_apply_column(
 	const char* const column_name,
 	void (*callback)(void* current_row_value, void* user_data, const void** const column_values),
 	void* user_data,
-	const char (*column_value_names)[MAX_COL_LEN],
+	const char (*column_value_names)[DT_MAX_COL_LEN],
 	const size_t n_column_values);
 
 // apply a user-defined callback function on ALL cells within a table.
@@ -425,35 +425,35 @@ enum status_code_e
 dt_table_cast_columns(
 	struct DataTable* const table,
 	const size_t n_columns,
-	const char (*column_names)[MAX_COL_LEN],
+	const char (*column_names)[DT_MAX_COL_LEN],
 	const enum data_type_e* new_column_types);
 
 struct DataTable*
 dt_table_join_inner(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[MAX_COL_LEN],
+  const char (*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns);
 
 struct DataTable*
 dt_table_join_left(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[MAX_COL_LEN],
+  const char (*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns);
 
 struct DataTable*
 dt_table_join_right(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[MAX_COL_LEN],
+  const char (*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns);
 
 struct DataTable*
 dt_table_join_full(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[MAX_COL_LEN],
+  const char (*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns);
 
 bool

@@ -127,8 +127,8 @@ dt_column_free(
 void
 dt_column_iterate_rows(
 	struct DataColumn* const column,
-	void* user_data,
-	void (*user_callback)(void* item, void* user_data));
+	void (*user_callback)(void* item, void* user_data),
+  void* user_data);
 
 // create a deep copy of a column.
 // i.e., if data inside column is heap-allocated, there will be NEW
@@ -143,8 +143,8 @@ dt_column_copy(
 size_t*
 dt_column_filter(
 	const struct DataColumn* const column,
-	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data));
+	bool (*filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // subset a column by a "boolean" size_t array containing 0s and 1s.
 // will skip rows that are 0 and keep the 1s and return a newly-allocated column

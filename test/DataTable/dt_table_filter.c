@@ -14,7 +14,7 @@ int main()
 {
 	int status = -1;
 
-	char colnames[2][MAX_COL_LEN] = { "col1", "col2" };
+	char colnames[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	enum data_type_e types[2] = { INT32, FLOAT };
 	struct DataTable* table = dt_table_create(2, colnames, types);
 
@@ -34,8 +34,8 @@ int main()
 	struct DataTable* filtered_table = dt_table_filter_by_name(
 		table,
 		"col1",
-		NULL,
-		&my_callback);
+		&my_callback,
+    NULL);
 
 	if (filtered_table->n_rows != 1)
 	{

@@ -20,7 +20,7 @@ int main()
 {
 	int status = -1;
 
-	char colnames[2][MAX_COL_LEN] = { "col1", "col2" };
+	char colnames[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	enum data_type_e types[2] = { INT32, FLOAT };
 	struct DataTable* table = dt_table_create(2, colnames, types);
 
@@ -42,10 +42,10 @@ int main()
 	// filter for col1 >= 10 && col2 > 5.0f
 	struct DataTable* filtered = dt_table_filter_AND_by_idx(
 		table,
-		filter_idx,
 		2,
-		NULL,
-		callbacks);
+		filter_idx,
+		callbacks,
+    NULL);
 
 	if (filtered->n_rows != 2)
 	{
@@ -82,15 +82,15 @@ int main()
 	}
 
 	// exact same tests but passing column names instead of indices
-	const char filter_names[2][MAX_COL_LEN] = { "col1", "col2" };
+	const char filter_names[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 
 	// filter for col1 >= 20 && col2 > 15.0f
 	struct DataTable* filtered2 = dt_table_filter_AND_by_name(
 		table,
-		filter_names,
 		2,
-		NULL,
-		callbacks);
+		filter_names,
+		callbacks,
+    NULL);
 
 	if (filtered2->n_rows != 2)
 	{

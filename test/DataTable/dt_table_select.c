@@ -6,7 +6,7 @@ int main()
 {
 	int status = -1;
 
-	char colnames[2][MAX_COL_LEN] = { "col1", "col2" };
+	char colnames[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	enum data_type_e types[2] = { INT32, FLOAT };
 	struct DataTable* table = dt_table_create(2, colnames, types);
 
@@ -21,7 +21,7 @@ int main()
 	set2 = 21.21f;
 	dt_table_insert_row(table, 2, NULL, &set2);
 
-	char select_cols[1][MAX_COL_LEN] = { "col1" };
+	char select_cols[1][DT_MAX_COL_LEN] = { "col1" };
 	struct DataTable* subset = dt_table_select(table, 1, select_cols);
 
 	if (subset->n_columns != 1)

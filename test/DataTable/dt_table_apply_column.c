@@ -18,7 +18,7 @@ int main()
 {
 	int status = -1;
 	
-	char colnames[3][MAX_COL_LEN] = { "col1", "col2", "col3" };
+	char colnames[3][DT_MAX_COL_LEN] = { "col1", "col2", "col3" };
 	enum data_type_e types[3] = { INT32, INT32, INT32 };
 	struct DataTable* table = dt_table_create(3, colnames, types);
 
@@ -44,7 +44,7 @@ int main()
 	}
 
 	// pass these columns to the callback function
-	const char column_value_names[2][MAX_COL_LEN] = { "col1", "col2" };
+	const char column_value_names[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	dt_table_apply_column(table, "col3", &add_columns, NULL, column_value_names, 2);
 
 	const int32_t* get = NULL;

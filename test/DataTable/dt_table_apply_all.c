@@ -18,7 +18,7 @@ int main()
 {
 	int status = -1;
 
-	char colnames[2][MAX_COL_LEN] = { "col1", "col2" };
+	char colnames[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	enum data_type_e types[2] = { INT32, INT32 };
 	struct DataTable* table = dt_table_create(2, colnames, types);
 
