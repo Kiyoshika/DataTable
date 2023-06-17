@@ -472,6 +472,13 @@ dt_table_rows_equal(
 {
 	for (size_t i = 0; i < n_column_indices; ++i)
 	{
+    // special case for NULL values
+    if ((dt_table_check_isnull(table1, row_idx_1, i) && !dt_table_check_isnull(table2, row_idx_2, i))
+        || (!dt_table_check_isnull(table1, row_idx_1, i) && dt_table_check_isnull(table2, row_idx_2, i)))
+    {
+      return false;
+    }
+
     const size_t table1_check_idx = table1_column_indices[i];
     const size_t table2_check_idx = table2_column_indices[i];
 
@@ -1088,7 +1095,10 @@ __dt_insert_row_from_two_tables(
     if (table1)
       value = dt_table_get_value(table1, table1_row_idx, col);
 
-    dt_table_set_value(target_table, target_row_idx, col, value);
+    if (table1 && dt_table_check_isnull(table1, table1_row_idx, col))
+      dt_table_set_value(target_table, target_row_idx, col, NULL);
+    else
+      dt_table_set_value(target_table, target_row_idx, col, value);
   }
 
   for (size_t col = table1_columns; col < table1_columns + table2_columns; ++col)
@@ -1097,7 +1107,10 @@ __dt_insert_row_from_two_tables(
     if (table2)
       value = dt_table_get_value(table2, table2_row_idx, col - table1_columns);
 
-    dt_table_set_value(target_table, target_row_idx, col, value);
+    if (table2 && dt_table_check_isnull(table2, table2_row_idx, col - table1_columns))
+      dt_table_set_value(target_table, target_row_idx, col, NULL);
+    else
+      dt_table_set_value(target_table, target_row_idx, col, value);
   }
 }
 
@@ -1131,14 +1144,14 @@ dt_table_join_inner(
     return NULL;
 
   size_t current_insert_row = 0;
-  size_t original_row_idx = 0;
+  size_t hash_table_row_idx = 0;
   for (size_t i = 0; i < right_table->n_rows; ++i)
   {
-    if (hash_contains(left_table_hash, right_table, right_table_indices, &original_row_idx, i))
+    if (hash_contains(left_table_hash, right_table, right_table_indices, &hash_table_row_idx, i))
     {
       __dt_insert_row_from_two_tables(
           left_table, 
-          original_row_idx, 
+          hash_table_row_idx, 
           left_table->n_columns,
           right_table, 
           i, 
@@ -1323,4 +1336,30 @@ dt_table_join_full(
   dt_table_free(&right_join);
 
   return left_join;
+}
+
+bool
+dt_table_check_isnull(
+  const struct DataTable* const table,
+  const size_t row_idx,
+  const size_t col_idx)
+{
+  struct DataColumn* column = table->columns[col_idx].column;
+  for (size_t i = 0; i < column->n_null_values; ++i)
+    if (column->null_value_indices[i] == row_idx)
+      return true;
+
+  return false;
+}
+
+bool
+dt_table_row_contains_null(
+  const struct DataTable* const table,
+  const size_t row_idx)
+{
+  for (size_t i = 0; i < table->n_columns; ++i)
+    if (dt_table_check_isnull(table, row_idx, i))
+      return true;
+
+  return false;
 }

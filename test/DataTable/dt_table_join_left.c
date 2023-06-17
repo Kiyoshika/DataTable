@@ -16,13 +16,16 @@ int main()
 	float set2 = 5.5f;
 	dt_table_insert_row(table, 2, &set1, &set2);
 
-	set1 = 20;
 	set2 = 12.52f;
-	dt_table_insert_row(table, 2, &set1, &set2);
+	dt_table_insert_row(table, 2, NULL, &set2);
 
   set1 = 122;
 	set2 = 21.21f;
 	dt_table_insert_row(table, 2, &set1, &set2);
+
+  set1 = 0;
+  set2 = 1.12f;
+  dt_table_insert_row(table, 2, &set1, &set2);
 
 	// TABLE TWO
   char colnames2[2][MAX_COL_LEN] = { "col1", "col3" };
@@ -37,16 +40,15 @@ int main()
   set2 = 99.35f;
 	dt_table_insert_row(table2, 2, &set1, &set2);
 
-	set1 = 20;
   set2 = 32.95f;
-	dt_table_insert_row(table2, 2, &set1, &set2);
+	dt_table_insert_row(table2, 2, NULL, &set2);
 
   char join_columns[1][MAX_COL_LEN] = { "col1" };
   struct DataTable* left_join = dt_table_join_left(table, table2, join_columns, 1);
 
-  if (left_join->n_rows != 3)
+  if (left_join->n_rows != 4)
   {
-    fprintf(stderr, "Expected joined table to have three rows.\n");
+    fprintf(stderr, "Expected joined table to have four rows.\n");
     goto cleanup;
   }
 
@@ -86,9 +88,9 @@ int main()
   }
 
   /* ROW 1 */
-  if ((get1 = dt_table_get_value(left_join, 1, 0)) && *get1 != 20)
+  if (!dt_table_get_value(left_join, 1, 0))
   {
-    fprintf(stderr, "Incorrect value for left_join[1, 0].\n");
+    fprintf(stderr, "Expected left_join[1, 0] to be NULL.\n");
     goto cleanup;
   }
 
@@ -98,11 +100,11 @@ int main()
     goto cleanup;
   }
 
-  if ((get3 = dt_table_get_value(left_join, 1, 2)) && *get3 != 20)
+  if (!dt_table_check_isnull(left_join, 1, 2))
   {
-    fprintf(stderr, "Incorrect value for left_join[1, 2].\n");
+    fprintf(stderr, "Expected left_join[1, 2] to be NULL.\n");
     goto cleanup;
-  }
+  } 
 
   if ((get4 = dt_table_get_value(left_join, 1, 3)) && fabsf(*get4 - 32.95f) > 0.0001f)
   {
@@ -123,17 +125,42 @@ int main()
     goto cleanup;
   }
 
-  if ((get3 = dt_table_get_value(left_join, 2, 2)) && *get3 != 0) // "NULL"
+  if (!dt_table_check_isnull(left_join, 2, 2))
   {
-    fprintf(stderr, "Incorrect value for left_join[2, 2].\n");
+    fprintf(stderr, "Expected left_join[2, 2] to be NULL.\n");
     goto cleanup;
   }
 
-  if ((get4 = dt_table_get_value(left_join, 2, 3)) && fabsf(*get4 - 0.00f) > 0.0001f) // "NULL"
+  if (!dt_table_check_isnull(left_join, 2, 3))
   {
-    fprintf(stderr, "Incorrect value for left_join[2, 3].\n");
+    fprintf(stderr, "Expected left_join[2, 3] to be NULL.\n");
     goto cleanup;
   }
+
+  /* ROW 3 */
+  if ((get1 = dt_table_get_value(left_join, 3, 0)) && *get1 != 0)
+  {
+    fprintf(stderr, "Incorrect value for left_join[3, 0].\n");
+    goto cleanup;
+  }
+
+  if ((get2 = dt_table_get_value(left_join, 3, 1)) && fabsf(*get2 - 1.12f) > 0.0001f)
+  {
+    fprintf(stderr, "Incorrect value for left_join[3, 1].\n");
+    goto cleanup;
+  }
+
+  if (!dt_table_check_isnull(left_join, 3, 2))
+  {
+    fprintf(stderr, "Expected left_join[3, 2] to be NULL.\n");
+    goto cleanup;
+  }
+
+ if (!dt_table_check_isnull(left_join, 3, 3))
+ {
+    fprintf(stderr, "Expected left_join[3, 3] to be NULL.\n");
+    goto cleanup;
+ } 
 
   status = 0;
 cleanup:
