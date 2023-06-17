@@ -16,9 +16,8 @@ int main()
 	float set2 = 5.5f;
 	dt_table_insert_row(table, 2, &set1, &set2);
 
-	set1 = 20;
 	set2 = 12.52f;
-	dt_table_insert_row(table, 2, &set1, &set2);
+	dt_table_insert_row(table, 2, NULL, &set2);
 
   set1 = 122;
 	set2 = 21.21f;
@@ -58,18 +57,18 @@ int main()
 
   /* ROW 0 */
   const int32_t* get1;
-  if ((get1 = dt_table_get_value(right_join, 0, 0)) && *get1 != 0) // "NULL"
+  if (!dt_table_check_isnull(right_join, 0, 0))
   {
-    fprintf(stderr, "Incorrect value for right_join[0, 0].\n");
+    fprintf(stderr, "Expected right_join[0, 0] to be NULL.\n");
     goto cleanup;
   }
 
   const float* get2;
-  if ((get2 = dt_table_get_value(right_join, 0, 1)) && fabsf(*get2 - 0.00f) > 0.0001f) // "NULL"
+  if (!dt_table_check_isnull(right_join, 0, 1))
   {
-    fprintf(stderr, "Incorrect value for right_join[0, 1].\n");
+    fprintf(stderr, "Expected right_join[0, 1] to be NULL.\n");
     goto cleanup;
-  }
+  } 
 
   const int32_t* get3;
   if ((get3 = dt_table_get_value(right_join, 0, 2)) && *get3 != 55)
@@ -111,15 +110,15 @@ int main()
   }
 
   /* ROW 2 */
-  if ((get1 = dt_table_get_value(right_join, 2, 0)) && *get1 != 20)
+  if (!dt_table_check_isnull(right_join, 2, 0))
   {
-    fprintf(stderr, "Incorrect value for right_join[2, 0].\n");
+    fprintf(stderr, "Expected right_join[2, 0] to be NULL.\n");
     goto cleanup;
   }
 
-  if ((get2 = dt_table_get_value(right_join, 2, 1)) && fabsf(*get2 - 12.52f) > 0.0001f)
+  if (!dt_table_check_isnull(right_join, 2, 1))
   {
-    fprintf(stderr, "Incorrect value for right_join[2, 1].\n");
+    fprintf(stderr, "Expected right_join[2, 1] to be NULL.\n");
     goto cleanup;
   }
 

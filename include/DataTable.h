@@ -455,4 +455,16 @@ dt_table_join_full(
   const struct DataTable* const right_table,
   const char (*join_columns)[MAX_COL_LEN],
   const size_t n_join_columns);
+
+bool
+dt_table_check_isnull(
+  const struct DataTable* const table,
+  const size_t row_idx,
+  const size_t col_idx);
+
+bool
+dt_table_row_contains_null(
+  const struct DataTable* const table,
+  const size_t row_idx);
+
 #endif

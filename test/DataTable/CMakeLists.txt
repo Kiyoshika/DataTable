@@ -138,3 +138,8 @@ add_executable(dt_table_join_full dt_table_join_full.c)
 target_include_directories(dt_table_join_full PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_join_full datatable)
 add_test(NAME dt_table_join_full COMMAND dt_table_join_full)
+
+add_executable(dt_table_check_isnull dt_table_check_isnull.c)
+target_include_directories(dt_table_check_isnull PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_check_isnull datatable)
+add_test(NAME dt_table_check_isnull COMMAND dt_table_check_isnull)
