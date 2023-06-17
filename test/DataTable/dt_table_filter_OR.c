@@ -42,10 +42,10 @@ int main()
 	// filter for col1 >= 20 || col2 > 15.0f
 	struct DataTable* filtered = dt_table_filter_OR_by_idx(
 		table,
-		filter_idx,
 		2,
-		NULL,
-		callbacks);
+		filter_idx,
+		callbacks,
+    NULL);
 
 	if (filtered->n_rows != 2)
 	{
@@ -87,10 +87,10 @@ int main()
 	// filter for col1 >= 20 || col2 > 15.0f
 	struct DataTable* filtered2 = dt_table_filter_OR_by_name(
 		table,
-		filter_names,
 		2,
-		NULL,
-		callbacks);
+		filter_names,
+		callbacks,
+    NULL);
 
 	if (filtered2->n_rows != 2)
 	{

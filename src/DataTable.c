@@ -241,27 +241,27 @@ struct DataTable*
 dt_table_filter_by_name(
 	const struct DataTable* const table,
 	const char* const column,
-	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data))
+	bool (*filter_callback)(void* item, void* user_data),
+  void* user_data)
 {
 	bool is_error = false;
 	size_t column_idx = __get_column_index(table, column, &is_error);
 	if (is_error)
 		return NULL;
-	return dt_table_filter_by_idx(table, column_idx, user_data, filter_callback);
+	return dt_table_filter_by_idx(table, column_idx, filter_callback, user_data);
 }
 
 struct DataTable*
 dt_table_filter_by_idx(
 	const struct DataTable* const table,
 	const size_t column_idx,
-	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data))
+	bool (*filter_callback)(void* item, void* user_data),
+  void* user_data)
 {
 	size_t* filtered_idx = dt_column_filter(
 		table->columns[column_idx].column,
-		user_data,
-		filter_callback);
+		filter_callback,
+    user_data);
 
 	if (!filtered_idx)
 		return NULL;
@@ -288,44 +288,44 @@ dt_table_filter_by_idx(
 struct DataTable*
 dt_table_filter_OR_by_idx(
 	const struct DataTable* const table,
-	const size_t* column_indices,
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data))
+	const size_t* column_indices,
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data)
 {
 	return __filter_multiple(
 		table,
-		column_indices,
 		n_columns,
-		user_data,
+		column_indices,
 		filter_callback,
-		&or_callback);
+		&or_callback,
+    user_data);
 }
 
 struct DataTable*
 dt_table_filter_AND_by_idx(
 	const struct DataTable* const table,
-	const size_t* column_indices,
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data))
+	const size_t* column_indices,
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data)
 {
 	return __filter_multiple(
 		table,
-		column_indices,
 		n_columns,
-		user_data,
+		column_indices,
 		filter_callback,
-		&and_callback);
+		&and_callback,
+    user_data);
 }
 
 struct DataTable*
 dt_table_filter_OR_by_name(
 	const struct DataTable* const table,
-	const char(*column_names)[MAX_COL_LEN],
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data))
+	const char(*column_names)[MAX_COL_LEN],
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data)
 {
 	size_t* column_indices = __get_multiple_column_indices(table, column_names, n_columns);
 	if (!column_indices)
@@ -333,10 +333,10 @@ dt_table_filter_OR_by_name(
 
 	struct DataTable* filtered = dt_table_filter_OR_by_idx(
 		table,
-		column_indices,
 		n_columns,
-		user_data,
-		filter_callback);
+		column_indices,
+		filter_callback,
+    user_data);
 
 	free(column_indices);
 	return filtered;
@@ -345,10 +345,10 @@ dt_table_filter_OR_by_name(
 struct DataTable*
 dt_table_filter_AND_by_name(
 	const struct DataTable* const table,
-	const char(*column_names)[MAX_COL_LEN],
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data))
+	const char(*column_names)[MAX_COL_LEN],
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data)
 {
 	size_t* column_indices = __get_multiple_column_indices(table, column_names, n_columns);
 	if (!column_indices)
@@ -356,10 +356,10 @@ dt_table_filter_AND_by_name(
 
 	struct DataTable* filtered = dt_table_filter_AND_by_idx(
 		table,
-		column_indices,
 		n_columns,
-		user_data,
-		filter_callback);
+		column_indices,
+		filter_callback,
+    user_data);
 
 	free(column_indices);
 	return filtered;

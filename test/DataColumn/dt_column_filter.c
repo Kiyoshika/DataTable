@@ -46,7 +46,7 @@ int main()
 	set = 5;
 	dt_column_set_value(column, 4, &set);
 
-	size_t* filtered_idx = dt_column_filter(column, NULL, &filter_even);
+	size_t* filtered_idx = dt_column_filter(column, &filter_even, NULL);
 
 	size_t expected[5] = { 0, 1, 0, 1, 0 };
 

@@ -359,8 +359,8 @@ dt_column_fill_values(
 void
 dt_column_iterate_rows(
 	struct DataColumn* const column,
-	void* user_data,
-	void (*user_callback)(void* item, void* user_data))
+	void (*user_callback)(void* item, void* user_data),
+  void* user_data)
 {
 	for (size_t i = 0; i < column->n_values; ++i)
 		user_callback(get_index_ptr(column, i), user_data);
@@ -412,8 +412,8 @@ dt_column_copy(
 size_t*
 dt_column_filter(
 	const struct DataColumn* const column,
-	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data))
+	bool (*filter_callback)(void* item, void* user_data),
+  void* user_data)
 {
 	// an array of 0/1 indicating whether or not to keep the row
 	size_t* filtered_idx = calloc(column->n_values, sizeof(size_t));

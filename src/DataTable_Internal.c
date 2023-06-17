@@ -130,11 +130,11 @@ and_callback(
 static struct DataTable*
 __filter_multiple(
 	const struct DataTable* const table,
-	const size_t* column_indices,
 	const size_t n_columns,
-	void* user_data,
+	const size_t* column_indices,
 	bool (**filter_callback)(void* item, void* user_data),
-	size_t* (*or_and_callback)(size_t** boolean_arrays, size_t n_rows, size_t n_columns))
+	size_t* (*or_and_callback)(size_t** boolean_arrays, size_t n_rows, size_t n_columns),
+  void* user_data)
 {
 	// create pointer to pointer of size_t "arrays" to store the
 	// boolean size_t arrays when calling column filter on each
@@ -149,8 +149,8 @@ __filter_multiple(
 	for (size_t i = 0; i < n_columns; ++i)
 		filter_idx_arrays[i] = dt_column_filter(
 			table->columns[column_indices[i]].column,
-			user_data,
-			filter_callback[i]);
+			filter_callback[i],
+      user_data);
 
 	// create the final "boolean" size_t array which iterates all of
 	// the others (row-by-row) and sets it to 1 if AT LEAST ONE of the

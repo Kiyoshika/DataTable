@@ -47,7 +47,7 @@ int main()
 	set = 5;
 	dt_column_set_value(column, 4, &set);
 
-	dt_column_iterate_rows(column, NULL, &double_values_inplace);
+	dt_column_iterate_rows(column, &double_values_inplace, NULL);
 
 	int32_t get = 0;
 	dt_column_get_value(column, 0, &get);
@@ -86,7 +86,7 @@ int main()
 	}
 
 	int32_t sum = 0;
-	dt_column_iterate_rows(column, &sum, &sum_variable);
+	dt_column_iterate_rows(column, &sum_variable, &sum);
 
 	if (sum != 30)
 	{

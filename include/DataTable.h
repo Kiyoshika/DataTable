@@ -106,8 +106,8 @@ struct DataTable*
 dt_table_filter_by_name(
 	const struct DataTable* const table,
 	const char* const column,
-	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data));
+	bool (*filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter multiple columns specified by [column_names] and return a
 // (newly-allocated) table containing the rows where AT LEAST ONE COLUMN
@@ -116,10 +116,10 @@ dt_table_filter_by_name(
 struct DataTable*
 dt_table_filter_OR_by_name(
 	const struct DataTable* const table,
-	const char(*column_names)[MAX_COL_LEN],
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data));
+	const char(*column_names)[MAX_COL_LEN],
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter multiple columns specified by [column_names] and return a
 // (newly-allocated) table containing the rows where ALL COLUMNS matched 
@@ -128,10 +128,10 @@ dt_table_filter_OR_by_name(
 struct DataTable*
 dt_table_filter_AND_by_name(
 	const struct DataTable* const table,
-	const char(*column_names)[MAX_COL_LEN],
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data));
+	const char(*column_names)[MAX_COL_LEN],
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter a single column by index and return a (newly-allocated) table
 // containing the rows that matched the filter callback.
@@ -140,8 +140,8 @@ struct DataTable*
 dt_table_filter_by_idx(
 	const struct DataTable* const table,
 	const size_t column_idx,
-	void* user_data,
-	bool (*filter_callback)(void* item, void* user_data));
+	bool (*filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter multiple columns by index and return a (newly-allocated) table
 // containing the rows where matched AT LEAST ONE COLUMN
@@ -151,10 +151,10 @@ dt_table_filter_by_idx(
 struct DataTable*
 dt_table_filter_OR_by_idx(
 	const struct DataTable* const table,
-	const size_t* column_indices,
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data));
+	const size_t* column_indices,
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // filter multiple columns by index and return a (newly-allocated) table
 // containing the rows where ALL COLUMNS matched the filter callback
@@ -163,10 +163,10 @@ dt_table_filter_OR_by_idx(
 struct DataTable*
 dt_table_filter_AND_by_idx(
 	const struct DataTable* const table,
-	const size_t* column_indices,
 	const size_t n_columns,
-	void* user_data,
-	bool (**filter_callback)(void* item, void* user_data));
+	const size_t* column_indices,
+	bool (**filter_callback)(void* item, void* user_data),
+  void* user_data);
 
 // return a pointer to a column (NOT a copy).
 // returns NULL if column is not found.
