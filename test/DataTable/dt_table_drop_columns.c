@@ -5,7 +5,7 @@ int main()
 {
 	int status = -1;
 
-	char colnames[3][MAX_COL_LEN] = { "col1", "col2", "col3" };
+	char colnames[3][DT_MAX_COL_LEN] = { "col1", "col2", "col3" };
 	enum data_type_e types[3] = { INT32, FLOAT, UINT8 };
 	struct DataTable* table = dt_table_create(3, colnames, types);
 
@@ -23,7 +23,7 @@ int main()
 	set3 = 3;
 	dt_table_insert_row(table, 2, NULL, &set2, &set3);
 
-	const char drop_cols[2][MAX_COL_LEN] = { "col1", "col3" };
+	const char drop_cols[2][DT_MAX_COL_LEN] = { "col1", "col3" };
 	dt_table_drop_columns_by_name(table, 2, drop_cols);
 
 	if (table->n_columns != 1)

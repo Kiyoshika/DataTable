@@ -5,7 +5,7 @@ int main()
 {
 	int status = -1;
 
-	char colnames[2][MAX_COL_LEN] = { "col1", "col2" };
+	char colnames[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	enum data_type_e types[2] = { INT32, FLOAT };
 	struct DataTable* table = dt_table_create(2, colnames, types);
 
@@ -22,7 +22,7 @@ int main()
 
 	struct DataTable* table2 = dt_table_create(
 			2, 
-			(const char[2][MAX_COL_LEN]){ "col3", "col4" }, 
+			(const char[2][DT_MAX_COL_LEN]){ "col3", "col4" }, 
 			(const enum data_type_e[2]){ DOUBLE, INT8 });
 
 	double set3 = 1.21;
@@ -60,7 +60,7 @@ int main()
 	// "col1" is the duplicate name in this case
 	struct DataTable* table3 = dt_table_create(
 			2, 
-			(const char[2][MAX_COL_LEN]){ "col5", "col1" }, 
+			(const char[2][DT_MAX_COL_LEN]){ "col5", "col1" }, 
 			(const enum data_type_e[2]){ DOUBLE, INT8 });
 
 	set3 = 1.21;
@@ -84,7 +84,7 @@ int main()
 	// TESTING MISMATCHED ROW SIZES (should fail)
 	struct DataTable* table4 = dt_table_create(
 			2, 
-			(const char[2][MAX_COL_LEN]){ "col5", "col1" }, 
+			(const char[2][DT_MAX_COL_LEN]){ "col5", "col1" }, 
 			(const enum data_type_e[2]){ DOUBLE, INT8 });
 
 	if (dt_table_append_by_column(table, table4) == DT_SUCCESS)

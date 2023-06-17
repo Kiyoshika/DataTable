@@ -8,7 +8,7 @@ int main()
   int status = -1;
 
   // TABLE ONE
-	char colnames[2][MAX_COL_LEN] = { "col1", "col2" };
+	char colnames[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	enum data_type_e types[2] = { INT32, FLOAT };
 	struct DataTable* table = dt_table_create(2, colnames, types);
 
@@ -24,7 +24,7 @@ int main()
 	dt_table_insert_row(table, 2, NULL, &set2);
 
 	// TABLE TWO
-  char colnames2[1][MAX_COL_LEN] = { "col1" };
+  char colnames2[1][DT_MAX_COL_LEN] = { "col1" };
   enum data_type_e types2[1] = { INT32 };
 	struct DataTable* table2 = dt_table_create(1, colnames2, types2);
 
@@ -37,7 +37,7 @@ int main()
 	set1 = 20;
 	dt_table_insert_row(table2, 1, &set1);
 
-  char join_columns[1][MAX_COL_LEN] = { "col1" };
+  char join_columns[1][DT_MAX_COL_LEN] = { "col1" };
   struct DataTable* inner_join = dt_table_join_inner(table, table2, join_columns, 1);
 
   if (inner_join->n_rows != 2)

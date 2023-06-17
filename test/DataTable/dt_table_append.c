@@ -7,7 +7,7 @@ int main()
 	int status = -1;
 
 	// TABLE ONE
-	char colnames[2][MAX_COL_LEN] = { "col1", "col2" };
+	char colnames[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	enum data_type_e types[2] = { INT32, FLOAT };
 	struct DataTable* table = dt_table_create(2, colnames, types);
 
@@ -122,7 +122,7 @@ int main()
 	}
 
 	// TABLE THREE (SHOULD FAIL FROM HAVING MORE COLUMNS)
-	char colnames2[3][MAX_COL_LEN] = { "col1", "col2", "col3" };
+	char colnames2[3][DT_MAX_COL_LEN] = { "col1", "col2", "col3" };
 	enum data_type_e types2[3] = { INT32, FLOAT, INT32 };
 	struct DataTable* table3 = dt_table_create(3, colnames2, types2);
 
@@ -134,7 +134,7 @@ int main()
 	}
 
 	// TABLE FOUR (SHOULD FAIL FROM HAVING DIFFERENT TYPES)
-	char colnames3[2][MAX_COL_LEN] = { "col1", "col2" };
+	char colnames3[2][DT_MAX_COL_LEN] = { "col1", "col2" };
 	enum data_type_e types3[2] = { INT32, INT32 };
 	struct DataTable* table4 = dt_table_create(2, colnames3, types3);
 

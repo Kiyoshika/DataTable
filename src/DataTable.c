@@ -8,7 +8,7 @@
 struct DataTable*
 dt_table_create(
 	const size_t n_columns,
-	const char (*column_names)[MAX_COL_LEN],
+	const char (*column_names)[DT_MAX_COL_LEN],
 	const enum data_type_e* data_types)
 {
 	struct DataTable* table = malloc(sizeof(*table));
@@ -32,7 +32,7 @@ dt_table_create(
 			.column = NULL
 		};
 
-		strncat(c.name, column_names[i], MAX_COL_LEN - 1);
+		strncat(c.name, column_names[i], DT_MAX_COL_LEN);
 		dt_column_create(&c.column, 0, data_types[i]);
 		if (!c.column)
 		{
@@ -132,7 +132,7 @@ struct DataTable*
 dt_table_select(
 	const struct DataTable* const table,
 	const size_t n_columns,
-	const char (*columns)[MAX_COL_LEN])
+	const char (*columns)[DT_MAX_COL_LEN])
 {
 	enum data_type_e* types = malloc(n_columns * sizeof(enum data_type_e));
 	if (!types)
@@ -206,7 +206,7 @@ struct DataTable*
 dt_table_copy_skeleton(
 	const struct DataTable* const table)
 {
-	char(*col_names)[MAX_COL_LEN] = calloc(table->n_columns, sizeof(*col_names));
+	char(*col_names)[DT_MAX_COL_LEN] = calloc(table->n_columns, sizeof(*col_names));
 	if (!col_names)
 		return NULL;
 
@@ -323,7 +323,7 @@ struct DataTable*
 dt_table_filter_OR_by_name(
 	const struct DataTable* const table,
 	const size_t n_columns,
-	const char(*column_names)[MAX_COL_LEN],
+	const char(*column_names)[DT_MAX_COL_LEN],
 	bool (**filter_callback)(void* item, void* user_data),
   void* user_data)
 {
@@ -346,7 +346,7 @@ struct DataTable*
 dt_table_filter_AND_by_name(
 	const struct DataTable* const table,
 	const size_t n_columns,
-	const char(*column_names)[MAX_COL_LEN],
+	const char(*column_names)[DT_MAX_COL_LEN],
 	bool (**filter_callback)(void* item, void* user_data),
   void* user_data)
 {
@@ -572,8 +572,8 @@ dt_table_insert_column(
 	}
 
 	struct ColumnPair newpair;
-	memset(newpair.name, 0, MAX_COL_LEN);
-	strncat(newpair.name, column_name, strlen(column_name));
+	memset(newpair.name, 0, DT_MAX_COL_LEN);
+	strncat(newpair.name, column_name, strlen(column_name) + 1);
 	newpair.column = column_copy;
 
 	memcpy(&table->columns[table->n_columns++], &newpair, sizeof(struct ColumnPair));
@@ -585,7 +585,7 @@ enum status_code_e
 dt_table_drop_columns_by_name(
 	struct DataTable* table,
 	const size_t n_columns,
-	const char (*column_names)[MAX_COL_LEN])
+	const char (*column_names)[DT_MAX_COL_LEN])
 {
 	size_t* column_indices = __get_multiple_column_indices(table, column_names, n_columns);
 
@@ -656,7 +656,7 @@ dt_table_apply_column(
 	const char* const column_name,
 	void (*callback)(void* current_row_value, void* user_data, const void** const column_values),
 	void* user_data,
-	const char (*column_value_names)[MAX_COL_LEN],
+	const char (*column_value_names)[DT_MAX_COL_LEN],
 	const size_t n_column_values)
 {
 	
@@ -993,7 +993,7 @@ enum status_code_e
 dt_table_cast_columns(
 	struct DataTable* const table,
 	const size_t n_columns,
-	const char (*column_names)[MAX_COL_LEN],
+	const char (*column_names)[DT_MAX_COL_LEN],
 	const enum data_type_e* new_column_types)
 {
 	for (size_t i = 0; i < n_columns; ++i)
@@ -1013,7 +1013,7 @@ static struct DataTable*
 __dt_setup_join(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char(*join_columns)[MAX_COL_LEN],
+  const char(*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns,
   size_t** left_table_indices,
   size_t** right_table_indices,
@@ -1021,7 +1021,7 @@ __dt_setup_join(
   struct HashTable** right_table_hash)
 {
   struct DataTable* join_table = NULL;
-  char (*combined_columns)[MAX_COL_LEN] = NULL;
+  char (*combined_columns)[DT_MAX_COL_LEN] = NULL;
   enum data_type_e* combined_types = NULL;
 
   *left_table_indices = __get_multiple_column_indices(left_table, join_columns, n_join_columns);
@@ -1051,13 +1051,13 @@ __dt_setup_join(
   for (size_t i = 0; i < left_table->n_columns; ++i)
   {
     combined_types[i] = left_table->columns[i].column->type;
-    memcpy(combined_columns[i], left_table->columns[i].name, MAX_COL_LEN);
+    memcpy(combined_columns[i], left_table->columns[i].name, DT_MAX_COL_LEN);
   }
 
   for (size_t i = left_table->n_columns; i < left_table->n_columns + right_table->n_columns; ++i)
   {
     combined_types[i] = right_table->columns[i - left_table->n_columns].column->type;
-    memcpy(combined_columns[i], right_table->columns[i - left_table->n_columns].name, MAX_COL_LEN);
+    memcpy(combined_columns[i], right_table->columns[i - left_table->n_columns].name, DT_MAX_COL_LEN);
   }
 
   join_table = dt_table_create(left_table->n_columns + right_table->n_columns, combined_columns, combined_types);
@@ -1118,7 +1118,7 @@ struct DataTable*
 dt_table_join_inner(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[MAX_COL_LEN],
+  const char (*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns)
 {
   if (!left_table || !right_table)
@@ -1173,7 +1173,7 @@ struct DataTable*
 dt_table_join_left(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[MAX_COL_LEN],
+  const char (*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns)
 {
   if (!left_table || !right_table)
@@ -1239,7 +1239,7 @@ struct DataTable*
 dt_table_join_right(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[MAX_COL_LEN],
+  const char (*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns)
 {
   if (!left_table || !right_table)
@@ -1305,7 +1305,7 @@ struct DataTable*
 dt_table_join_full(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[MAX_COL_LEN],
+  const char (*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns)
 {
   if (!left_table || !right_table)

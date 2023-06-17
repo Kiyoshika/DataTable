@@ -47,7 +47,7 @@ __get_column_index(
 static size_t* 
 __get_multiple_column_indices(
 	const struct DataTable* const table,
-	const char (*column_names)[MAX_COL_LEN],
+	const char (*column_names)[DT_MAX_COL_LEN],
 	const size_t n_columns)
 {
 	size_t* column_indices = calloc(n_columns, sizeof(size_t));
@@ -887,7 +887,7 @@ __parse_header_from_csv(
 	__tokenize_line(current_line, delim, tokens, &n_tokens);
 
 	// create array of column names after tokenizing header
-	char (*column_names)[MAX_COL_LEN] = calloc(n_tokens, sizeof(*column_names));
+	char (*column_names)[DT_MAX_COL_LEN] = calloc(n_tokens, sizeof(*column_names));
 	if (!column_names)
 		return NULL;
 	for (size_t i = 0; i < n_tokens; ++i)
