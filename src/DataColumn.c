@@ -222,7 +222,15 @@ dt_column_set_value(
 			return status;
 	}
 	else
-		memcpy(value_at, value, column->type_size);
+  {
+    if (column->type == STRING)
+    {
+      char* value_str = strdup((const char*)value);
+      memcpy(value_at, &value_str, column->type_size);
+    }
+    else
+      memcpy(value_at, value, column->type_size);
+  }
 
 	// overwriting NULL value with non-null value,
 	// remove the index from the null values array and
@@ -255,8 +263,8 @@ dt_column_append_value(
 		// before appending into column
 		if (column->type == STRING)
 		{
-			const char** const value_str_addr = (const char** const)value;
-			const char* const value_str = strdup(*value_str_addr);
+			//const char** const value_str_addr = (const char** const)value;
+			const char* const value_str = strdup((const char*)value);
 			memcpy(value_at, &value_str, column->type_size);
 		}
 		else
@@ -330,25 +338,7 @@ dt_column_fill_values(
 	const void* const value)
 {
 	for (size_t i = 0; i < column->n_values; ++i)
-	{
-		// if string type, each need to be separately heap-allocated
-		if (column->type == STRING)
-		{
-			char* value_str = strdup(*(const char** const)value);
-			dt_column_set_value(column, i, &value_str);
-		}
-		else
 			dt_column_set_value(column, i, value);
-	}
-
-	// free the original string user provided since it's been copied
-	// into every row and no longer needed
-	if (column->type == STRING)
-	{
-		char** original = (char**)value; // cast to avoid warnings about const-ness
-		free(*original);
-		*original = NULL;
-	}
 }
 
 void
@@ -377,8 +367,8 @@ dt_column_copy(
 		// we need to heap-allocate a copy as well
 		if (column->type == STRING)
 		{
-			char** source_addr = source;
-			char* source_content = strdup(*source_addr);
+			//char** source_addr = source;
+			char* source_content = strdup((const char*)source);
 			memcpy(dest, &source_content, copy_column->type_size);
 		}
 		else

@@ -113,6 +113,7 @@ __cast_column_string_to_numeric(
 	struct DataColumn* const column,
 	enum data_type_e new_type)
 {
+  column->type = new_type;
 	switch (new_type)
 	{
 		case DOUBLE:
@@ -171,7 +172,8 @@ __cast_column_string_to_numeric(
 		char* numeric_string = calloc(25, sizeof(char)); \
 		integer_to_string(old_values[i], numeric_string); \
 		__reverse_string(numeric_string); \
-		dt_column_set_value(column, i, &numeric_string); \
+		dt_column_set_value(column, i, numeric_string); \
+    free(numeric_string); \
 	} \
 	free(old_values); \
 	column->deallocator = &dt_string_dealloc; \
@@ -183,6 +185,7 @@ __cast_column_numeric_to_string(
 	struct DataColumn* const column,
 	enum data_type_e old_type)
 {
+  column->type = STRING;
 	switch (old_type)
 	{
 		case INT8:

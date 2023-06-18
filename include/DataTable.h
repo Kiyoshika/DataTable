@@ -137,7 +137,7 @@ dt_table_filter_AND_by_name(
 // containing the rows that matched the filter callback.
 // returns NULL on failure (e.g., out of memory)
 struct DataTable*
-dt_table_filter_by_idx(
+dt_table_filter_by_index(
 	const struct DataTable* const table,
 	const size_t column_idx,
 	bool (*filter_callback)(void* item, void* user_data),
@@ -149,7 +149,7 @@ dt_table_filter_by_idx(
 // array of function pointers).
 // returns NULL on failure (e.g., out of memory)
 struct DataTable*
-dt_table_filter_OR_by_idx(
+dt_table_filter_OR_by_index(
 	const struct DataTable* const table,
 	const size_t n_columns,
 	const size_t* column_indices,
@@ -161,7 +161,7 @@ dt_table_filter_OR_by_idx(
 // for the specified column (passed as an array of function pointers).
 // returns NULL on failure (e.g., out of memory)
 struct DataTable*
-dt_table_filter_AND_by_idx(
+dt_table_filter_AND_by_index(
 	const struct DataTable* const table,
 	const size_t n_columns,
 	const size_t* column_indices,
@@ -283,8 +283,8 @@ dt_table_apply_column(
 	const char* const column_name,
 	void (*callback)(void* current_row_value, void* user_data, const void** const column_values),
 	void* user_data,
-	const char (*column_value_names)[DT_MAX_COL_LEN],
-	const size_t n_column_values);
+  const size_t n_column_values,
+	const char (*column_value_names)[DT_MAX_COL_LEN]);
 
 // apply a user-defined callback function on ALL cells within a table.
 // optionally pass custom [user_data].
@@ -432,29 +432,29 @@ struct DataTable*
 dt_table_join_inner(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[DT_MAX_COL_LEN],
-  const size_t n_join_columns);
+  const size_t n_join_columns,
+  const char (*join_columns)[DT_MAX_COL_LEN]);
 
 struct DataTable*
 dt_table_join_left(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[DT_MAX_COL_LEN],
-  const size_t n_join_columns);
+  const size_t n_join_columns,
+  const char (*join_columns)[DT_MAX_COL_LEN]);
 
 struct DataTable*
 dt_table_join_right(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[DT_MAX_COL_LEN],
-  const size_t n_join_columns);
+  const size_t n_join_columns,
+  const char (*join_columns)[DT_MAX_COL_LEN]);
 
 struct DataTable*
 dt_table_join_full(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[DT_MAX_COL_LEN],
-  const size_t n_join_columns);
+  const size_t n_join_columns,
+  const char (*join_columns)[DT_MAX_COL_LEN]);
 
 bool
 dt_table_check_isnull(
@@ -467,7 +467,12 @@ dt_table_row_contains_null(
   const struct DataTable* const table,
   const size_t row_idx);
 
-void
+bool
+dt_table_column_contains_null(
+  const struct DataTable* const table,
+  const size_t col_idx);
+
+bool
 dt_table_to_csv(
   const struct DataTable* const table,
   const char* const filepath,

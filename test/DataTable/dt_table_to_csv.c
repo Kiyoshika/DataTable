@@ -21,7 +21,11 @@ int main()
 	set2 = 21.21f;
 	dt_table_insert_row(table, 2, NULL, &set2);
 
-  dt_table_to_csv(table, "output.csv", ',');
+  if (!dt_table_to_csv(table, "output.csv", ','))
+  {
+    fprintf(stderr, "Failed to write to CSV.\n");
+    goto cleanup;
+  }
 
 	status = 0;
 cleanup:

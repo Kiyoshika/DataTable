@@ -148,3 +148,8 @@ add_executable(dt_table_to_csv dt_table_to_csv.c)
 target_include_directories(dt_table_to_csv PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_to_csv datatable)
 add_test(NAME dt_table_to_csv COMMAND dt_table_to_csv)
+
+add_executable(dt_table_string dt_table_string.c)
+target_include_directories(dt_table_string PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_string datatable)
+add_test(NAME dt_table_string COMMAND dt_table_string)

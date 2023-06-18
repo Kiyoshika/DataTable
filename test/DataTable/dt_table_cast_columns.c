@@ -11,20 +11,14 @@ int main()
 
 	int32_t set1 = 10;
 	float set2 = 5.5f;
-	char* set3 = strdup("50.322");
-	dt_table_insert_row(table, 3, &set1, &set2, &set3);
+	dt_table_insert_row(table, 3, &set1, &set2, "50.322");
 
 	set1 = 20;
 	set2 = 12.52f;
-	free(set3);
-	set3 = strdup("12.123");
-	dt_table_insert_row(table, 3, &set1, &set2, &set3);
+	dt_table_insert_row(table, 3, &set1, &set2, "12.123");
 
 	set2 = 21.21f;
-	free(set3);
-	set3 = strdup("1.245");
-	dt_table_insert_row(table, 3, NULL, &set2, &set3);
-	free(set3);
+	dt_table_insert_row(table, 3, NULL, &set2, "1.245");
 
 	// cast INT32 -> STRING 
 	// cast FLOAT -> UINT8 

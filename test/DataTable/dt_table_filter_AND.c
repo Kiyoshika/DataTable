@@ -40,7 +40,7 @@ int main()
 	bool (*callbacks[2])(void*, void*) = { &col1_filter, &col2_filter };
 
 	// filter for col1 >= 10 && col2 > 5.0f
-	struct DataTable* filtered = dt_table_filter_AND_by_idx(
+	struct DataTable* filtered = dt_table_filter_AND_by_index(
 		table,
 		2,
 		filter_idx,

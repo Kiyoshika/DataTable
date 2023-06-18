@@ -45,7 +45,7 @@ int main()
 
 	// pass these columns to the callback function
 	const char column_value_names[2][DT_MAX_COL_LEN] = { "col1", "col2" };
-	dt_table_apply_column(table, "col3", &add_columns, NULL, column_value_names, 2);
+	dt_table_apply_column(table, "col3", &add_columns, NULL, 2, column_value_names);
 
 	const int32_t* get = NULL;
 	get = dt_table_get_value(table, 0, 2);

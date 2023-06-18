@@ -9,8 +9,7 @@ int main()
 	struct DataColumn* copy = NULL;
 	dt_column_create(&column, 5, STRING);
 
-	char* set = strdup("hello there");
-	dt_column_set_value(column, 0, &set);
+	dt_column_set_value(column, 0, "hello there");
 
 	char** get = dt_column_get_value_ptr(column, 0);
 
@@ -20,11 +19,7 @@ int main()
 		goto cleanup;
 	}
 
-	// append value will create a new heap copy for heap-allocated objects
-	// so we manually have to free these local copies)
-	set = strdup("this is appended");
-	dt_column_append_value(column, &set);
-	free(set);
+	dt_column_append_value(column, "this is appended");
 
 	get = dt_column_get_value_ptr(column, 5);
 	if (strcmp(*get, "this is appended") != 0)
@@ -33,9 +28,7 @@ int main()
 		goto cleanup;
 	}
 
-	set = strdup("these values are filled");
-	dt_column_fill_values(column, &set);
-	free(set);
+	dt_column_fill_values(column, "these values are filled");
 
 	for (size_t i = 0; i < column->n_values; ++i)
 	{
