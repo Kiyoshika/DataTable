@@ -937,22 +937,18 @@ __parse_body_from_csv(
 		if (!items)
 			items = calloc(n_tokens, sizeof(void*));
 
+    dt_table_insert_empty_row(table);
+
 		// create "shared" pointers to insert into table
 		for (size_t i = 0; i < table->n_columns; ++i)
 		{
+      // if length is zero, value is already NULL so we can ignore it
 			char* value = strdup(__get_token(tokens, i));
-			// insert NULL value if string is empty
-			if (strlen(value) == 0)
-			{
-				memset((char*)items + i*sizeof(void*), 0, sizeof(void*));
-				free(value);
-			}
-			else
-				memcpy((char*)items + i*sizeof(void*), &value, sizeof(void*));
-		}
+			if (strlen(value) > 0)
+        dt_table_set_value(table, table->n_rows - 1, i, value);
 
-		// insert values into table
-		dt_table_insert_row_from_array(table, items);
+      free(value);
+		}
 
 		// cleanup values after inserting (copies are made at insert time)
 		for (size_t i = 0; i < table->n_columns; ++i)

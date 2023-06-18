@@ -1385,7 +1385,7 @@ dt_table_row_contains_null(
   return false;
 }
 
-void
+bool
 dt_table_to_csv(
   const struct DataTable* const table,
   const char* const filepath,
@@ -1397,7 +1397,7 @@ dt_table_to_csv(
   if (!csv_file)
   {
     printf(err_msg, filepath);
-    return;
+    return false;
   }
 
   char write_buffer[4096] = {0};
@@ -1408,8 +1408,8 @@ dt_table_to_csv(
   size_t write_len = strlen(write_buffer);
   if (fwrite(write_buffer, sizeof(char), write_len, csv_file) < write_len)
   {
-    printf(err_msg, filepath);
     fclose(csv_file);
+    return false;
   }
 
   // write body
@@ -1420,10 +1420,11 @@ dt_table_to_csv(
     write_len = strlen(write_buffer);
     if (fwrite(write_buffer, sizeof(char), write_len, csv_file) < write_len)
     {
-      printf(err_msg, filepath);
       fclose(csv_file);
+      return false;
     }
   }
 
   fclose(csv_file);
+  return true;
 }

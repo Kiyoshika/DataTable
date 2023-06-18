@@ -467,7 +467,7 @@ dt_table_row_contains_null(
   const struct DataTable* const table,
   const size_t row_idx);
 
-void
+bool
 dt_table_to_csv(
   const struct DataTable* const table,
   const char* const filepath,
