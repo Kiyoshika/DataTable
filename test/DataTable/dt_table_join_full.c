@@ -42,7 +42,7 @@ int main()
 	dt_table_insert_row(table2, 2, &set1, &set2);
 
   char join_columns[1][DT_MAX_COL_LEN] = { "col1" };
-  struct DataTable* full_join = dt_table_join_full(table, table2, join_columns, 1);
+  struct DataTable* full_join = dt_table_join_full(table, table2, 1, join_columns);
 
   if (full_join->n_rows != 6)
   {

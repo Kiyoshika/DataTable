@@ -44,7 +44,7 @@ int main()
 	dt_table_insert_row(table2, 2, NULL, &set2);
 
   char join_columns[1][DT_MAX_COL_LEN] = { "col1" };
-  struct DataTable* left_join = dt_table_join_left(table, table2, join_columns, 1);
+  struct DataTable* left_join = dt_table_join_left(table, table2, 1, join_columns);
 
   if (left_join->n_rows != 4)
   {

@@ -248,11 +248,11 @@ dt_table_filter_by_name(
 	size_t column_idx = __get_column_index(table, column, &is_error);
 	if (is_error)
 		return NULL;
-	return dt_table_filter_by_idx(table, column_idx, filter_callback, user_data);
+	return dt_table_filter_by_index(table, column_idx, filter_callback, user_data);
 }
 
 struct DataTable*
-dt_table_filter_by_idx(
+dt_table_filter_by_index(
 	const struct DataTable* const table,
 	const size_t column_idx,
 	bool (*filter_callback)(void* item, void* user_data),
@@ -286,7 +286,7 @@ dt_table_filter_by_idx(
 }
 
 struct DataTable*
-dt_table_filter_OR_by_idx(
+dt_table_filter_OR_by_index(
 	const struct DataTable* const table,
 	const size_t n_columns,
 	const size_t* column_indices,
@@ -303,7 +303,7 @@ dt_table_filter_OR_by_idx(
 }
 
 struct DataTable*
-dt_table_filter_AND_by_idx(
+dt_table_filter_AND_by_index(
 	const struct DataTable* const table,
 	const size_t n_columns,
 	const size_t* column_indices,
@@ -331,7 +331,7 @@ dt_table_filter_OR_by_name(
 	if (!column_indices)
 		return NULL;
 
-	struct DataTable* filtered = dt_table_filter_OR_by_idx(
+	struct DataTable* filtered = dt_table_filter_OR_by_index(
 		table,
 		n_columns,
 		column_indices,
@@ -354,7 +354,7 @@ dt_table_filter_AND_by_name(
 	if (!column_indices)
 		return NULL;
 
-	struct DataTable* filtered = dt_table_filter_AND_by_idx(
+	struct DataTable* filtered = dt_table_filter_AND_by_index(
 		table,
 		n_columns,
 		column_indices,
@@ -677,8 +677,8 @@ dt_table_apply_column(
 	const char* const column_name,
 	void (*callback)(void* current_row_value, void* user_data, const void** const column_values),
 	void* user_data,
-	const char (*column_value_names)[DT_MAX_COL_LEN],
-	const size_t n_column_values)
+	const size_t n_column_values,
+	const char (*column_value_names)[DT_MAX_COL_LEN])
 {
 	
 	bool is_error = false;
@@ -1034,8 +1034,8 @@ static struct DataTable*
 __dt_setup_join(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char(*join_columns)[DT_MAX_COL_LEN],
   const size_t n_join_columns,
+  const char(*join_columns)[DT_MAX_COL_LEN],
   size_t** left_table_indices,
   size_t** right_table_indices,
   struct HashTable** left_table_hash,
@@ -1139,8 +1139,8 @@ struct DataTable*
 dt_table_join_inner(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[DT_MAX_COL_LEN],
-  const size_t n_join_columns)
+  const size_t n_join_columns,
+  const char (*join_columns)[DT_MAX_COL_LEN])
 {
   if (!left_table || !right_table)
     return NULL;
@@ -1154,8 +1154,8 @@ dt_table_join_inner(
     __dt_setup_join(
         left_table,
         right_table,
-        join_columns,
         n_join_columns,
+        join_columns,
         &right_table_indices,
         &left_table_indices,
         &left_table_hash,
@@ -1194,8 +1194,8 @@ struct DataTable*
 dt_table_join_left(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[DT_MAX_COL_LEN],
-  const size_t n_join_columns)
+  const size_t n_join_columns,
+  const char (*join_columns)[DT_MAX_COL_LEN])
 {
   if (!left_table || !right_table)
     return NULL;
@@ -1209,8 +1209,8 @@ dt_table_join_left(
     __dt_setup_join(
         left_table,
         right_table,
-        join_columns,
         n_join_columns,
+        join_columns,
         &right_table_indices,
         &left_table_indices,
         &left_table_hash,
@@ -1260,8 +1260,8 @@ struct DataTable*
 dt_table_join_right(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[DT_MAX_COL_LEN],
-  const size_t n_join_columns)
+  const size_t n_join_columns,
+  const char (*join_columns)[DT_MAX_COL_LEN])
 {
   if (!left_table || !right_table)
     return NULL;
@@ -1275,8 +1275,8 @@ dt_table_join_right(
     __dt_setup_join(
         left_table,
         right_table,
-        join_columns,
         n_join_columns,
+        join_columns,
         &right_table_indices,
         &left_table_indices,
         &left_table_hash,
@@ -1326,20 +1326,20 @@ struct DataTable*
 dt_table_join_full(
   const struct DataTable* const left_table,
   const struct DataTable* const right_table,
-  const char (*join_columns)[DT_MAX_COL_LEN],
-  const size_t n_join_columns)
+  const size_t n_join_columns,
+  const char (*join_columns)[DT_MAX_COL_LEN])
 {
   if (!left_table || !right_table)
     return NULL;
 
   struct DataTable* left_join 
-    = dt_table_join_left(left_table, right_table, join_columns, n_join_columns);
+    = dt_table_join_left(left_table, right_table, n_join_columns, join_columns);
 
   if (!left_join)
     return NULL;
 
   struct DataTable* right_join
-    = dt_table_join_right(left_table, right_table, join_columns, n_join_columns);
+    = dt_table_join_right(left_table, right_table, n_join_columns, join_columns);
 
   if (!right_join)
   {

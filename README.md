@@ -28,7 +28,37 @@ This is a data structure composed of `DataColumn`s (see below). All the columns 
 This is a data structure that represents a single column. All of its members are allocated contiguously and supports all the typical types (`int32_t`, `uint8_t`, `char*`, etc.) and also custom user types (so we can have tables of more complex structures if required).
 
 ## Building from Source
-TODO: rewrite this
+After closing this repo, you can use:
+* `mkdir build && cd build`
+* `cmake -DDEBUG_MODE=OFF -DCOMPILE_TESTS=ON -DCOMPILE_STATIC=ON ..`
+  * `DEBUG_MODE` is `OFF` by default
+  * `COMPILE_TESTS` is `OFF` by default
+  * `COMPILE_STATIC` is `ON` by default (compiles as static library)
+
+If you compiled with tests, enter the `build` directory and use `make test` to verify the build is working correctly.
+
+To globally install the library, within the `build` directory, use `sudo make install`.
+
+### Adding to Other Projects
+If you globally installed the library, you can add this to your project's CMake:
+```cmake
+find_package(datatable 0.1.0 REQUIRED EXACT) # or whatever version you're targeting
+
+add_executable(myexe myexe.c)
+target_link_libraries(myexe datatable)
+```
+
+If you don't want to globally install, you can add the project as part of your build by creating a git submodule and adding the directory.
+
+Create an `ext/` directory and add this repo as a submodule there. Then:
+```cmake
+# build libdatatable first
+add_subdirectory(ext/DataTable)
+
+add_executable(myexe myexe.c)
+target_include_directories(myexe PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(myexe datatable)
+```
 
 ## Quick Start Guide
 There are a lot of functions provided, but the [header](include/DataTable.h) provides a lot of comments around usage. Here we just quickly demonstrate some useful features.
