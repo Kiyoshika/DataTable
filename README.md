@@ -132,8 +132,58 @@ dt_table_free(&table);
 ```
 
 ### Data Access
+When accessing a value, a pointer to constant data is returned. It's advised to NOT work around this and modify data via pointers. This can case bugs with NULL values. It's recommended to use the dedicated setters instead.
+
+Getting data:
+```c
+// assume this has a float and int32_t column
+struct DataTable* table = ...;
+const float* value1 = dt_table_get_value(table, row, column);
+const int32_t* value2 = dt_table_get_value(table, row2, column2);
+```
+
+Updating data:
+```c
+// assume this has a float and int32_t column
+struct DataTable* table = ...;
+const float* new_value1 = 3.14159f;
+const int32_t* new_value2 = 22;
+dt_table_set_value(table, row, column, &new_value1);
+dt_table_set_value(table, row2, column2, &new_value2);
+
+// you can also set a value to be null
+dt_table_set_value(table, row3, column3, NULL);
+```
+
+When using `set`, any heap-allocated data (i.e., string) will be deallocated before being overwritten. If that value was previously `NULL`, that null flag will be cleared (or vice versa, the NULL flag will be set if passing NULL).
 
 ### Null Values
+You can check if a value is null with `dt_table_check_isnull()`:
+```c
+if (dt_table_check_isnull(table, row, column))
+{
+  // this value is null
+}
+```
+
+Alternately you can check if an entire row or column contains at least one null value.
+```c
+if (dt_table_row_contains_null(table, row))
+{
+  // this row has at least one null value
+}
+
+if (dt_table_column_contains_null(table, column))
+{
+  // this column has at least one null value
+}
+```
+
+You can also drop any rows or columns that contain at least one null value.
+```c
+dt_table_drop_columns_with_null(table);
+dt_table_drop_rows_with_null(table);
+```
 
 ### Selecting Columns
 

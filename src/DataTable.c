@@ -1386,6 +1386,15 @@ dt_table_row_contains_null(
 }
 
 bool
+dt_table_column_contains_null(
+  const struct DataTable* const table,
+  const size_t col_idx)
+{
+  struct DataColumn* column = table->columns[col_idx].column;
+  return column->n_null_values > 0;
+}
+
+bool
 dt_table_to_csv(
   const struct DataTable* const table,
   const char* const filepath,

@@ -338,25 +338,7 @@ dt_column_fill_values(
 	const void* const value)
 {
 	for (size_t i = 0; i < column->n_values; ++i)
-	{
-		// if string type, each need to be separately heap-allocated
-		if (column->type == STRING)
-		{
-			char* value_str = strdup((const char* const)value);
-			dt_column_set_value(column, i, &value_str);
-		}
-		else
 			dt_column_set_value(column, i, value);
-	}
-
-	// free the original string user provided since it's been copied
-	// into every row and no longer needed
-	if (column->type == STRING)
-	{
-		char** original = (char**)value; // cast to avoid warnings about const-ness
-		free(*original);
-		*original = NULL;
-	}
 }
 
 void
