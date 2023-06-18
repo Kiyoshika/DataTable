@@ -846,7 +846,7 @@ __tokenize_line(
 // tokens = "value1\0value2\0value3\0"
 // if we search for the second token, we will find the first NULL
 // character and return a pointer to the beginning of "value2"
-static const char* const
+static const char* 
 __get_token(
 	const char* const tokens,
 	const size_t token_idx)
@@ -1152,4 +1152,128 @@ __infer_csv_types(
 	__convert_csv_column_types_from_string(table);
 }
 
+static void
+__table_headers_to_string(
+  const struct DataTable* const table,
+  char* write_buffer,
+  const size_t write_buffer_max_len,
+  const char delim)
+{
+  memset(write_buffer, 0, write_buffer_max_len);
+  for (size_t i = 0; i < table->n_columns - 1; ++i)
+  {
+    size_t max_write_len = write_buffer_max_len - strlen(write_buffer) - 1;
+    strncat(write_buffer, table->columns[i].name, max_write_len);
+    strncat(write_buffer, &delim, 1);
+  }
+  size_t max_write_len = write_buffer_max_len - strlen(write_buffer) - 1;
+  strncat(write_buffer, table->columns[table->n_columns - 1].name, max_write_len);
+}
 
+static void
+__table_cell_value_to_string(
+  const struct DataTable* const table,
+  const size_t row_idx,
+  const size_t col_idx,
+  char* cell_value,
+  const size_t cell_value_max_len,
+  const char delim,
+  const bool include_delim)
+{
+  switch (table->columns[col_idx].column->type)
+  {
+    case FLOAT:
+    {
+      const float* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%f", *value);
+      break;
+    }
+    case DOUBLE:
+    {
+      const double* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%f", *value);
+      break;
+    }
+    case INT8:
+    {
+      const int8_t* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%d", *value);
+      break;
+    }
+    case INT16:
+    {
+      const int16_t* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%d", *value);
+      break;
+    }
+    case INT32:
+    {
+      const int32_t* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%d", *value);
+      break;
+    }
+    case UINT8:
+    {
+      const uint8_t* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%u", *value);
+      break;
+    }
+    case UINT16:
+    {
+      const uint16_t* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%u", *value);
+      break;
+    }
+    case UINT32:
+    {
+      const uint32_t* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%ul", *value);
+      break;
+    }
+    case INT64:
+    {
+      const int64_t* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%lld", (long long)*value);
+      break;
+    }
+    case UINT64:
+    {
+      const uint64_t* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%llu", (long long unsigned)*value);
+      break;
+    }
+    case STRING:
+    {
+      const char* value = dt_table_get_value(table, row_idx, col_idx);
+      snprintf(cell_value, cell_value_max_len, "%s", value);
+      break;
+    }
+  }
+
+  if (include_delim)
+    strncat(cell_value, &delim, 1);
+}
+
+static void
+__table_row_to_string(
+  const struct DataTable* const table,
+  const size_t row_idx,
+  char* write_buffer,
+  const size_t write_buffer_max_len,
+  const char delim)
+{
+  memset(write_buffer, 0, write_buffer_max_len);
+  for (size_t i = 0; i < table->n_columns - 1; ++i)
+  {
+    size_t max_write_len = write_buffer_max_len - strlen(write_buffer) - 1;
+    char cell_value[4096] = {0};
+
+    __table_cell_value_to_string(table, row_idx, i, cell_value, write_buffer_max_len, delim, true);
+    strncat(write_buffer, cell_value, max_write_len);
+  }
+
+  size_t max_write_len = write_buffer_max_len - strlen(write_buffer) - 1;
+  char cell_value[4096] = {0};
+  __table_cell_value_to_string(table, row_idx, table->n_columns - 1, cell_value, write_buffer_max_len, delim, false);
+  strncat(write_buffer, cell_value, max_write_len);
+}

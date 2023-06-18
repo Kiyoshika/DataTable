@@ -143,3 +143,8 @@ add_executable(dt_table_check_isnull dt_table_check_isnull.c)
 target_include_directories(dt_table_check_isnull PUBLIC ${DataTable_SOURCE_DIR}/include)
 target_link_libraries(dt_table_check_isnull datatable)
 add_test(NAME dt_table_check_isnull COMMAND dt_table_check_isnull)
+
+add_executable(dt_table_to_csv dt_table_to_csv.c)
+target_include_directories(dt_table_to_csv PUBLIC ${DataTable_SOURCE_DIR}/include)
+target_link_libraries(dt_table_to_csv datatable)
+add_test(NAME dt_table_to_csv COMMAND dt_table_to_csv)
