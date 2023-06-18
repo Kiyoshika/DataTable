@@ -599,14 +599,35 @@ dt_table_drop_columns_by_name(
 	
 }
 
+static int
+size_t_compare(
+  const void* a,
+  const void* b)
+{
+  const size_t* _a = a;
+  const size_t* _b = b;
+  if (_a > _b)
+    return -1;
+  if (_a < _b)
+    return 1;
+  return 0;
+}
+
 enum status_code_e
 dt_table_drop_columns_by_index(
 	struct DataTable* table,
 	const size_t n_columns,
 	size_t* column_indices)
 {
+  // every time we drop a column, we shift the indices by one.
+  // but this assumption only works if column_indices is sorted ascending
+  size_t n_dropped_columns = 0;
+  qsort(column_indices, n_columns, sizeof(size_t), &size_t_compare);
 	for (size_t i = 0; i < n_columns; ++i)
-		__drop_column(table, i);	
+  {
+		__drop_column(table, column_indices[i] - n_dropped_columns);	
+    n_dropped_columns++;
+  }
 
 	return DT_SUCCESS;
 }
@@ -1362,4 +1383,47 @@ dt_table_row_contains_null(
       return true;
 
   return false;
+}
+
+void
+dt_table_to_csv(
+  const struct DataTable* const table,
+  const char* const filepath,
+  const char delim)
+{
+  FILE* csv_file = fopen(filepath, "w+");
+  char* err_msg = "Warning: couldn't write table to file: %s\n";
+
+  if (!csv_file)
+  {
+    printf(err_msg, filepath);
+    return;
+  }
+
+  char write_buffer[4096] = {0};
+
+  // buffer size is one length less to append a \n character at the end of the buffer
+  __table_headers_to_string(table, write_buffer, 4095, delim);
+  strncat(write_buffer, "\n", 1);
+  size_t write_len = strlen(write_buffer);
+  if (fwrite(write_buffer, sizeof(char), write_len, csv_file) < write_len)
+  {
+    printf(err_msg, filepath);
+    fclose(csv_file);
+  }
+
+  // write body
+  for (size_t i = 0; i < table->n_rows; ++i)
+  {
+    __table_row_to_string(table, i, write_buffer, 4095, delim);
+    strncat(write_buffer, "\n", 1);
+    write_len = strlen(write_buffer);
+    if (fwrite(write_buffer, sizeof(char), write_len, csv_file) < write_len)
+    {
+      printf(err_msg, filepath);
+      fclose(csv_file);
+    }
+  }
+
+  fclose(csv_file);
 }

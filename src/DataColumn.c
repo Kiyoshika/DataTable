@@ -131,13 +131,8 @@ __remove_null_value_index(
 	struct DataColumn* const column,
 	const size_t index)
 {
-	for (size_t i = 0; i < column->n_null_values - 1; ++i)
+	for (size_t i = index; i < column->n_null_values - 1; ++i)
 		column->null_value_indices[i] = column->null_value_indices[i + 1];
-
-	// technically doesn't matter since we'll be decrementing the
-	// logical size, but setting it to zero anyways (could prevent
-	// confusion if debugging.)
-	column->null_value_indices[column->n_null_values - 1] = 0;
 }
 
 enum status_code_e
