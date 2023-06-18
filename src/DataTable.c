@@ -968,6 +968,8 @@ dt_table_read_csv(
 	// infer column types if they're not provided by the user
 	else
 		__infer_csv_types(table);
+
+  fclose(csv_file);
 	
 	return table;
 }

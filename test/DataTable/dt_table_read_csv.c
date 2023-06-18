@@ -7,7 +7,7 @@ int main()
 
 	// read CSV without providing column types (last args)
 	// this will infer the types to one of DOUBLE, STRING, UINT64, or INT64
-	struct DataTable* inferred_table= dt_table_read_csv("./mytable.csv", ',', NULL);
+	struct DataTable* inferred_table = dt_table_read_csv("./mytable.csv", ',', NULL);
 
 	// verify number of columns
 	if (inferred_table->n_columns != 3)
