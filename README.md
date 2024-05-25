@@ -283,6 +283,21 @@ dt_table_drop_columns_with_null(table);
 dt_table_drop_rows_with_null(table);
 ```
 
+In some cases you may want to replace all null values with a different value:
+```c
+// assume our column/table is uint8_t values
+uint8_t new_value = 12;
+
+// specify column by name
+dt_table_replace_column_null_values_by_name(table, "col1", &new_value);
+
+// specify column by index
+dt_table_replace_column_null_values_by_index(table, 0, &new_value);
+
+// replace every null value in table
+dt_table_replace_all_null_values(table, &new_value);
+```
+
 ### Selecting Columns
 Similar to how SQL can select columns, we can do the same here.
 
@@ -297,21 +312,6 @@ if (!subset)
 {
   // handle error ...
 }
-```
-
-In some cases you may want to replace all null values with a different value:
-```c
-// assume our column/table is uint8_t values
-uint8_t new_value = 12;
-
-// specify column by name
-dt_table_replace_column_null_values_by_name(table, "col1", &new_value);
-
-// specify column by index
-dt_table_replace_column_null_values_by_index(table, 0, &new_value);
-
-// replace every null value in table
-dt_table_replace_all_null_values(table, &new_value);
 ```
 
 ### Dropping Columns
